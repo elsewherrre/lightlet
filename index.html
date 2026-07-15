@@ -62,9 +62,7 @@
   .add-row input:focus {
     border-color: rgba(212,168,83,0.4);
   }
-  .add-row input::placeholder {
-    color: #4a4a4a;
-  }
+  .add-row input::placeholder { color: #4a4a4a; }
   .add-row button {
     background: rgba(212,168,83,0.12);
     border: 1px solid rgba(212,168,83,0.2);
@@ -76,9 +74,7 @@
     white-space: nowrap;
     transition: all 0.2s;
   }
-  .add-row button:active {
-    background: rgba(212,168,83,0.2);
-  }
+  .add-row button:active { background: rgba(212,168,83,0.2); }
   .items {
     flex: 1;
     display: flex;
@@ -96,92 +92,44 @@
     transition: all 0.3s;
     cursor: pointer;
   }
-  .item.done {
-    opacity: 0.55;
-    border-color: transparent;
-  }
+  .item.done { opacity: 0.55; border-color: transparent; }
   .item .star {
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
+    width: 22px; height: 22px; flex-shrink: 0;
     border-radius: 50%;
     border: 1.5px solid rgba(212,168,83,0.3);
     transition: all 0.4s ease;
-    position: relative;
   }
   .item.done .star {
     background: radial-gradient(circle at 45% 40%, #f5d78c, #d4a853 60%, #a07828);
     border-color: #d4a853;
     box-shadow: 0 0 12px rgba(212,168,83,0.35), 0 0 3px rgba(212,168,83,0.25);
   }
-  .item .text {
-    flex: 1;
-    font-size: 15px;
-    color: #c4bcaa;
-    transition: all 0.3s;
-  }
-  .item.done .text {
-    color: #6a6a6a;
-    text-decoration: line-through;
-    text-decoration-color: rgba(212,168,83,0.25);
-  }
-  .item .time {
-    font-size: 11px;
-    color: #4a4a4a;
-    flex-shrink: 0;
-  }
-  .item.done .time {
-    color: #5a4a30;
-  }
+  .item .text { flex: 1; font-size: 15px; color: #c4bcaa; transition: all 0.3s; }
+  .item.done .text { color: #6a6a6a; text-decoration: line-through; text-decoration-color: rgba(212,168,83,0.25); }
+  .item .time { font-size: 11px; color: #4a4a4a; flex-shrink: 0; }
+  .item.done .time { color: #5a4a30; }
   .item .delete {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    font-size: 13px;
-    color: transparent;
-    transition: all 0.2s;
-    flex-shrink: 0;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; font-size: 13px;
+    color: transparent; transition: all 0.2s; flex-shrink: 0;
   }
-  .item:hover .delete {
-    color: #5a3a3a;
-  }
-  .item .delete:active {
-    background: rgba(255,80,60,0.12);
-    color: #d44;
-  }
+  .item:hover .delete { color: #5a3a3a; }
+  .item .delete:active { background: rgba(255,80,60,0.12); color: #d44; }
   .footer {
     margin-top: 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex; justify-content: space-between; align-items: center;
     padding-top: 20px;
     border-top: 1px solid rgba(255,255,255,0.04);
   }
-  .footer .count {
-    font-size: 13px;
-    color: #5a5a5a;
-  }
-  .footer .count strong {
-    color: #d4a853;
-    font-weight: 500;
-  }
+  .footer .count { font-size: 13px; color: #5a5a5a; }
+  .footer .count strong { color: #d4a853; font-weight: 500; }
   .footer .clear {
-    font-size: 12px;
-    color: #4a4a4a;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 6px 10px;
-    border-radius: 6px;
-    transition: all 0.2s;
+    font-size: 12px; color: #4a4a4a;
+    background: none; border: none; cursor: pointer;
+    padding: 6px 10px; border-radius: 6px; transition: all 0.2s;
   }
-  .footer .clear:hover {
-    color: #8a6a5a;
-    background: rgba(255,255,255,0.03);
-  }
+  .footer .clear:hover { color: #8a6a5a; background: rgba(255,255,255,0.03); }
 </style>
 </head>
 <body>
@@ -193,7 +141,7 @@
   <p class="subtitle">每件小事都是一点微光。<br>汇集起来，就是你的星空。</p>
 
   <div class="add-row">
-    <input type="text" id="input" placeholder="添加一件事…" maxlength="80">
+    <input type="text" id="input" placeholder="添加一件事…" maxlength="80" autocomplete="off">
     <button id="addBtn">+ 微光</button>
   </div>
 
@@ -211,15 +159,12 @@ const STORAGE_KEY = 'lightlet_items_v1';
 function today() {
   return new Date().toLocaleDateString('zh-CN', { month:'long', day:'numeric', weekday:'short' });
 }
-
 function now() {
   return new Date().toLocaleTimeString('zh-CN', { hour:'2-digit', minute:'2-digit' });
 }
-
 function load() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
 }
-
 function save(items) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
 }
@@ -259,18 +204,15 @@ document.getElementById('addBtn').addEventListener('click', () => {
   input.value = '';
   render();
 });
-
 document.getElementById('input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('addBtn').click();
 });
-
 document.getElementById('items').addEventListener('click', (e) => {
   const action = e.target.dataset.action;
   const row = e.target.closest('.item');
   if (!row) return;
   const idx = parseInt(row.dataset.idx);
   const items = load();
-
   if (action === 'toggle') {
     items[idx].done = !items[idx].done;
     if (items[idx].done) items[idx].completedTime = now();
@@ -282,13 +224,11 @@ document.getElementById('items').addEventListener('click', (e) => {
     render();
   }
 });
-
 document.getElementById('clearBtn').addEventListener('click', () => {
   const items = load().filter(i => !i.done);
   save(items);
   render();
 });
-
 render();
 </script>
 </body>
