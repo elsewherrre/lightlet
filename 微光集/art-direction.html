@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>微光集 · 美术概念设计</title>
+<style>
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    --bg: #fafaf8;
+    --card-bg: #fff;
+    --text: #2c2c2c;
+    --text-dim: #888;
+    --border: #e8e8e4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 60px 20px 40px;
+  }
+  .hero h1 { font-size: 32px; font-weight: 700; letter-spacing: 3px; margin-bottom: 8px; }
+  .hero .tagline { font-size: 14px; color: var(--text-dim); letter-spacing: 1px; }
+  .hero .date { font-size: 12px; color: #bbb; margin-top: 12px; }
+
+  /* Mood header */
+  .mood-header {
+    text-align: center;
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto 40px;
+  }
+  .mood-header p { font-size: 14px; color: var(--text-dim); line-height: 1.8; }
+
+  /* Section title */
+  .section-title {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #bbb;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin: 60px 0 32px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Container */
+  .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+
+  /* Mode preview cards */
+  .mode-preview {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+  @media (max-width: 640px) { .mode-preview { flex-direction: column; } }
+
+  .mode-card {
+    flex: 1;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+  }
+  .mode-card .visual {
+    height: 220px;
+    position: relative;
+    overflow: hidden;
+  }
+  .mode-card .label {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .mode-card .label h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .mode-card .label p { font-size: 12px; color: var(--text-dim); }
+
+  /* Star Night visual */
+  .star-night-visual {
+    background: linear-gradient(175deg, #0a0e1a 0%, #111827 50%, #1a1f2e 100%);
+    position: relative;
+  }
+  .star-night-visual .ground {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 30%;
+    background: linear-gradient(transparent, rgba(20,28,20,0.8) 60%, rgba(15,22,15,1));
+  }
+  .star-night-visual .hill {
+    position: absolute;
+    bottom: 20%; left: -5%; right: -5%;
+    height: 60px;
+    background: rgba(18,26,18,0.9);
+    border-radius: 50% 60% 0 0;
+  }
+  .star-night-visual .house {
+    position: absolute;
+    bottom: 26%; right: 15%;
+    width: 30px; height: 20px;
+    background: rgba(30,22,18,0.7);
+    border-radius: 2px;
+  }
+  .star-night-visual .house::after {
+    content: '';
+    position: absolute; top: -14px; left: -3px;
+    width: 0; height: 0;
+    border-left: 18px solid transparent;
+    border-right: 18px solid transparent;
+    border-bottom: 16px solid rgba(35,28,22,0.6);
+  }
+
+  /* Light points in star night */
+  .lp { position: absolute; border-radius: 50%; }
+  .lp1 { width: 10px; height: 10px; background: #ffd780; top: 30%; left: 25%;
+    box-shadow: 0 0 12px #ffd780, 0 0 30px rgba(255,200,120,0.35); }
+  .lp2 { width: 7px; height: 7px; background: #f0c060; top: 20%; left: 55%;
+    box-shadow: 0 0 8px #f0c060, 0 0 20px rgba(240,192,96,0.25); }
+  .lp3 { width: 9px; height: 9px; background: #ffb840; top: 38%; left: 70%;
+    box-shadow: 0 0 10px #ffb840, 0 0 24px rgba(255,184,64,0.3); }
+  .lp4 { width: 6px; height: 6px; background: #e0a840; top: 15%; left: 40%;
+    box-shadow: 0 0 6px #e0a840, 0 0 16px rgba(224,168,64,0.2); }
+  .lp5 { width: 8px; height: 8px; background: #ffcc60; top: 42%; left: 50%;
+    box-shadow: 0 0 9px #ffcc60, 0 0 22px rgba(255,204,96,0.28); }
+  .dim-dot {
+    position: absolute; border-radius: 50%;
+    width: 3px; height: 3px;
+    background: rgba(180,190,210,0.3);
+  }
+
+  /* Pulse Day visual */
+  .pulse-day-visual {
+    background: #fafaf8;
+    position: relative;
+  }
+  .pulse-day-visual .grid {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .pd-node {
+    position: absolute; border-radius: 50%;
+    background: #1a1a1a;
+    transition: transform 0.3s;
+  }
+  .pd-n1 { width: 14px; height: 14px; top: 30%; left: 30%; }
+  .pd-n2 { width: 10px; height: 10px; top: 20%; left: 55%; }
+  .pd-n3 { width: 12px; height: 12px; top: 50%; left: 60%; }
+  .pd-n4 { width: 8px; height: 8px; top: 40%; left: 40%; }
+  .pd-n5 { width: 11px; height: 11px; top: 60%; left: 25%; }
+  .pd-line {
+    position: absolute;
+    height: 1px;
+    background: #ccc;
+    transform-origin: left center;
+  }
+  .pd-line1 { width: 120px; top: 37%; left: 37%; transform: rotate(15deg); }
+  .pd-line2 { width: 90px; top: 26%; left: 48%; transform: rotate(-20deg); }
+  .pd-line3 { width: 100px; top: 46%; left: 32%; transform: rotate(35deg); }
+
+  /* Color system */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .color-swatch {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+  }
+  .color-swatch .preview {
+    height: 80px;
+    position: relative;
+  }
+  .color-swatch .info {
+    padding: 10px 14px;
+  }
+  .color-swatch .info .name { font-size: 12px; font-weight: 600; }
+  .color-swatch .info .hex { font-size: 11px; color: var(--text-dim); font-family: "SF Mono", "Menlo", monospace; }
+  .color-swatch .info .usage { font-size: 10px; color: #bbb; margin-top: 2px; }
+
+  /* Typography */
+  .type-specimens {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 40px;
+  }
+  .type-row {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    padding: 16px 0;
+    border-bottom: 1px solid #f0f0ec;
+  }
+  .type-row:last-child { border: none; }
+  .type-row .spec { min-width: 140px; font-size: 11px; color: #bbb; letter-spacing: 1px; }
+  .type-row .sample { font-family: var(--font); }
+
+  /* Animation section */
+  .anim-cards {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  @media (max-width: 640px) { .anim-cards { flex-direction: column; } }
+  .anim-card {
+    flex: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .anim-card .demo {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .anim-card h4 { font-size: 13px; margin-bottom: 4px; }
+  .anim-card p { font-size: 11px; color: var(--text-dim); }
+
+  /* Breathing dot */
+  .breath-dot {
+    width: 16px; height: 16px;
+    background: #1a1a1a;
+    border-radius: 50%;
+    animation: breathe 3s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.3); opacity: 1; }
+  }
+
+  /* Burst animation */
+  .burst-container { position: relative; width: 40px; height: 40px; }
+  .burst-core {
+    position: absolute; top: 16px; left: 16px;
+    width: 8px; height: 8px;
+    background: #f0c060; border-radius: 50%;
+    animation: burstPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes burstPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(2.5); opacity: 0.5; }
+  }
+  .burst-part {
+    position: absolute;
+    width: 3px; height: 3px;
+    background: #f0c060; border-radius: 50%;
+    opacity: 0;
+  }
+  .burst-part:nth-child(2) { animation: burstOut 1.5s ease-in-out 0s infinite; }
+  .burst-part:nth-child(3) { animation: burstOut 1.5s ease-in-out 0.2s infinite; }
+  .burst-part:nth-child(4) { animation: burstOut 1.5s ease-in-out 0.4s infinite; }
+  .burst-part:nth-child(5) { animation: burstOut 1.5s ease-in-out 0.6s infinite; }
+  .burst-part:nth-child(6) { animation: burstOut 1.5s ease-in-out 0.8s infinite; }
+  @keyframes burstOut {
+    0% { transform: translate(0, 0); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)); opacity: 0; }
+  }
+
+  /* Connection line */
+  .conn-line-container {
+    width: 120px; height: 4px; position: relative;
+    overflow: hidden;
+  }
+  .conn-line-base {
+    width: 100%; height: 2px;
+    background: repeating-linear-gradient(90deg, #ccc 0, #ccc 4px, transparent 4px, transparent 8px);
+    animation: dashMove 1s linear infinite;
+  }
+  @keyframes dashMove {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(12px); }
+  }
+
+  /* Star night canvas mock */
+  .sky-mock {
+    background: linear-gradient(175deg, #0a0e1a, #111827);
+    border-radius: 16px;
+    padding: 40px 20px;
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+    min-height: 280px;
+  }
+  .sky-mock .sky-ground {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 25%;
+    background: linear-gradient(transparent, rgba(18,28,18,0.9));
+  }
+  .sky-mock h3 { color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 400; margin-bottom: 20px; position: relative; }
+  .sky-mock .star-row {
+    display: flex; justify-content: center; gap: 20px;
+    flex-wrap: wrap; position: relative;
+    margin: 12px 0;
+  }
+  .sky-mock .star {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #f0c060;
+    box-shadow: 0 0 12px rgba(240,192,96,0.4), 0 0 30px rgba(240,192,96,0.15);
+    position: relative;
+  }
+  .sky-mock .star::after {
+    content: '';
+    position: absolute;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(240,192,96,0.25), transparent);
+    top: -8px; left: -8px;
+  }
+  .sky-mock .star.dim {
+    background: rgba(160,170,190,0.25);
+    box-shadow: none;
+  }
+  .sky-mock .star.dim::after { display: none; }
+
+  /* Principles section */
+  .principles {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 40px;
+  }
+  .principles h3 { font-size: 15px; margin-bottom: 20px; }
+  .principle-row {
+    display: flex; gap: 20px; padding: 12px 0;
+    border-bottom: 1px solid #f0f0ec;
+  }
+  .principle-row:last-child { border: none; }
+  .principle-row .num {
+    font-size: 24px; font-weight: 700; color: #ddd;
+    min-width: 40px; line-height: 1.2;
+  }
+  .principle-row h4 { font-size: 13px; margin-bottom: 2px; }
+  .principle-row p { font-size: 12px; color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>微光集</h1>
+  <div class="tagline">美术概念设计 · Art Direction</div>
+  <div class="date">2026.07.15 · v1.0</div>
+</div>
+
+<div class="mood-header">
+  <p>这不是一个功能文档，而是视觉的「宪法」。<br>后续所有 UI 决策，先回到这里对照，保持风格一致。</p>
+</div>
+
+<!-- ===== DUAL MODE PREVIEW ===== -->
+<div class="container">
+  <h2 class="section-title">双模式视觉预览</h2>
+
+  <div class="mode-preview">
+    <div class="mode-card">
+      <div class="visual star-night-visual">
+        <div class="lp lp1"></div>
+        <div class="lp lp2"></div>
+        <div class="lp lp3"></div>
+        <div class="lp lp4"></div>
+        <div class="lp lp5"></div>
+        <div class="dim-dot" style="top:25%;left:15%"></div>
+        <div class="dim-dot" style="top:45%;left:80%"></div>
+        <div class="dim-dot" style="top:22%;left:65%"></div>
+        <div class="dim-dot" style="top:52%;left:35%"></div>
+        <div class="dim-dot" style="top:35%;left:90%"></div>
+        <div class="dim-dot" style="top:18%;left:78%"></div>
+        <div class="dim-dot" style="top:48%;left:12%"></div>
+        <div class="ground"></div>
+        <div class="hill"></div>
+        <div class="house"></div>
+      </div>
+      <div class="label">
+        <h3>星夜模式 · Star Night</h3>
+        <p>深色夜空 · 温暖金色光点 · 地面小屋</p>
+        <p style="font-size:11px;color:#bbb;margin-top:4px">日常记录与收集 · 情感导向</p>
+      </div>
+    </div>
+
+    <div class="mode-card">
+      <div class="visual pulse-day-visual">
+        <div class="grid"></div>
+        <div class="pd-node pd-n1"></div>
+        <div class="pd-node pd-n2"></div>
+        <div class="pd-node pd-n3"></div>
+        <div class="pd-node pd-n4"></div>
+        <div class="pd-node pd-n5"></div>
+        <div class="pd-line pd-line1"></div>
+        <div class="pd-line pd-line2"></div>
+        <div class="pd-line pd-line3"></div>
+      </div>
+      <div class="label">
+        <h3>脉络模式 · Pulse Day</h3>
+        <p>白底 · 黑色节点 · 极简连线</p>
+        <p style="font-size:11px;color:#bbb;margin-top:4px">回顾关联与洞察 · 逻辑导向</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COLOR SYSTEM ===== -->
+<div class="container">
+  <h2 class="section-title">色彩系统</h2>
+
+  <div class="principles" style="margin-bottom:32px">
+    <h3>星夜模式 · Night Palette</h3>
+  </div>
+  <div class="color-grid">
+    <div class="color-swatch">
+      <div class="preview" style="background:#0a0e1a"></div>
+      <div class="info">
+        <div class="name">深空</div>
+        <div class="hex">#0a0e1a</div>
+        <div class="usage">画布底色</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="preview" style="background:#111827"></div>
+      <div class="info">
+        <div class="name">夜空</div>
+        <div class="hex">#111827</div>
+        <div class="usage">渐变中段</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="preview" style="background:#1a1f2e"></div>
+      <div class="info">
+        <div class="name">地平</div>
+        <div class="hex">#1a1f2e</div>
+        <div class="usage">渐变末端 / 地面</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="preview" style="background:#f0c060"></div>
+      <div class="info">
+        <div class="name">星光</div>
+        <div class="hex">#f0c060</div>
+        <div class="usage">主光点 · 琥珀金</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="preview" style="background:#ffd780"></div>
+      <div class="info">
+        <div class="name">亮星</div>
+        <div class="hex">#ffd780</div>
+        <div class="usage">高亮光点 · 暖金</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="preview" style="background:#ffb840"></div>
+      <div class="info">
+        <div class="name">炽星</div>
+        <div class="hex">#ffb840</div>
+        <div class="usage">完成爆发色</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="preview" style="background:rgba(160,175,195,0.25)"></div>
+      <div class="info">
+        <div class="name">暗星</div>
+        <div class="hex">rgba(160,175,195,.25)</div>
+        <div class="usage">未点亮/遥远</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="preview" style="background:#141c14"></div>
+      <div class="info">
+        <div class="name">地面</div>
+        <div class="hex">#141c14</div>
+        <div class="usage">山丘 / 篝火底</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="principles" style="margin-bottom:32px;margin-top:40px">
+    <h3>脉络模式 · Day Palette</h3>
+  </div>
+  <div class="color-grid">
+    <div class="color-swatch">
+      <div class="preview" style="background:#fafaf8"></div>
+      <div class="info">
+        <div class="name">纸白</div>
+        <div class="hex">#fafaf8</div>
+        <div class="usage">画布底色</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="preview" style="background:#ffffff"></div>
+      <div class="info">
+        <div class="name">卡片白</div>
+        <div class="hex">#ffffff</div>
+        <div class="usage">UI 面板</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="preview" style="background:#1a1a1a"></div>
+      <div class="info">
+        <div class="name">墨黑</div>
+        <div class="hex">#1a1a1a</div>
+        <div class="usage">活跃节点</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="preview" style="background:#666666"></div>
+      <div class="info">
+        <div class="name">石墨</div>
+        <div class="hex">#666666</div>
+        <div class="usage">次要节点</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="preview" style="background:#cccccc"></div>
+      <div class="info">
+        <div class="name">铅线</div>
+        <div class="hex">#cccccc</div>
+        <div class="usage">连线 / 网格</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="preview" style="background:#e8e8e4"></div>
+      <div class="info">
+        <div class="name">浅墨</div>
+        <div class="hex">#e8e8e4</div>
+        <div class="usage">分隔线 / hover</div>
+      </div>
+    </div>
+    <div class="color-swatch">
+      <div class="preview" style="background:#5a8a6a"></div>
+      <div class="info">
+        <div class="name">苔绿</div>
+        <div class="hex">#5a8a6a</div>
+        <div class="usage">少量点缀 CTA</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STAR NIGHT MOCKUP ===== -->
+<div class="container">
+  <h2 class="section-title">核心视觉 · 星夜画布</h2>
+  <div class="sky-mock">
+    <h3>今日星空 · 2026/07/15</h3>
+    <div class="star-row">
+      <div class="star"></div>
+      <div class="star"></div>
+      <div class="star dim"></div>
+      <div class="star"></div>
+      <div class="star dim"></div>
+      <div class="star"></div>
+    </div>
+    <div class="star-row" style="gap:32px">
+      <div class="star dim"></div>
+      <div class="star"></div>
+      <div class="star"></div>
+      <div class="star dim"></div>
+      <div class="star"></div>
+    </div>
+    <div class="star-row" style="gap:28px">
+      <div class="star"></div>
+      <div class="star dim"></div>
+      <div class="star"></div>
+      <div class="star dim"></div>
+      <div class="star"></div>
+      <div class="star dim"></div>
+    </div>
+    <p style="color:rgba(255,255,255,0.3);font-size:11px;margin-top:24px;position:relative">
+      亮星 = 已完成 · 暗星 = 未完成 · ▼ 往下滚动看更早的日子
+    </p>
+    <div class="sky-ground"></div>
+  </div>
+</div>
+
+<!-- ===== ELEMENTS ===== -->
+<div class="container">
+  <h2 class="section-title">关键元素设计</h2>
+
+  <div class="principles">
+    <h3>光点 / Light Point（星夜模式）</h3>
+    <div class="principle-row">
+      <div class="num">01</div>
+      <div>
+        <h4>层级结构</h4>
+        <p>外层光晕（3x半径，透明度渐变）→ 主体圆（暖金色）→ 亮心（中心小点，更亮）<br>三层叠加营造「发光」而非「上色」</p>
+      </div>
+    </div>
+    <div class="principle-row">
+      <div class="num">02</div>
+      <div>
+        <h4>大小规则</h4>
+        <p>半径 3-6px，根据事项「重量」微调。今日完成的最大，历史的小。<br>背景星点半径 0.5-1.5px，仅作氛围。</p>
+      </div>
+    </div>
+    <div class="principle-row">
+      <div class="num">03</div>
+      <div>
+        <h4>颜色规则</h4>
+        <p>未完成：冷灰蓝 · rgba(160,175,195,0.2-0.3)<br>
+        已完成：琥珀金 · #f0c060 → #ffb840（今日）→ 随天数渐淡<br>
+        距离今日越远，饱和度和亮度越低——「时间的褪色」</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="principles" style="margin-top:32px">
+    <h3>节点 / Node（脉络模式）</h3>
+    <div class="principle-row">
+      <div class="num">01</div>
+      <div>
+        <h4>形态</h4>
+        <p>正圆形 · 纯黑 #1a1a1a<br>可选：微小不规则边缘（模拟手绘的轻微抖动，css border-radius 微调）</p>
+      </div>
+    </div>
+    <div class="principle-row">
+      <div class="num">02</div>
+      <div>
+        <h4>大小</h4>
+        <p>8-16px，按事项字数/重要度微调<br>展开态放大至 24px + 详情卡片弹出</p>
+      </div>
+    </div>
+    <div class="principle-row">
+      <div class="num">03</div>
+      <div>
+        <h4>连线</h4>
+        <p>实线：手动确认的关联 · #ccc · 1px<br>
+        虚线：AI 建议的关联 · #ddd · 1px · 虚线间距 4px/4px<br>
+        连线动画：建议虚线有缓慢的流动效果（dash offset 位移）</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ANIMATION ===== -->
+<div class="container">
+  <h2 class="section-title">动效语言</h2>
+
+  <div class="anim-cards">
+    <div class="anim-card">
+      <div class="demo">
+        <div class="breath-dot"></div>
+      </div>
+      <h4>呼吸 · Breathing</h4>
+      <p>活跃光点 3s 周期<br>缩放 1.0 → 1.3 → 1.0<br>暗示「活着」</p>
+    </div>
+    <div class="anim-card">
+      <div class="demo">
+        <div class="burst-container">
+          <div class="burst-core"></div>
+          <div class="burst-part" style="--dx:12px;--dy:-12px;top:16px;left:16px"></div>
+          <div class="burst-part" style="--dx:-10px;--dy:-8px;top:16px;left:16px"></div>
+          <div class="burst-part" style="--dx:8px;--dy:10px;top:16px;left:16px"></div>
+          <div class="burst-part" style="--dx:-8px;--dy:11px;top:16px;left:16px"></div>
+          <div class="burst-part" style="--dx:14px;--dy:3px;top:16px;left:16px"></div>
+        </div>
+      </div>
+      <h4>绽放 · Burst</h4>
+      <p>完成事项瞬间<br>5-8 粒子向外散开<br>庆祝但克制</p>
+    </div>
+    <div class="anim-card">
+      <div class="demo">
+        <div class="conn-line-container">
+          <div class="conn-line-base"></div>
+        </div>
+      </div>
+      <h4>流动 · Flow</h4>
+      <p>AI 建议虚线<br>缓慢位移 dash offset<br>表示「待确认」</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TYPOGRAPHY ===== -->
+<div class="container">
+  <h2 class="section-title">字体系统</h2>
+  <div class="type-specimens">
+    <div class="type-row">
+      <div class="spec">标题 / H1</div>
+      <div class="sample" style="font-size:28px;font-weight:700;letter-spacing:2px">微光集</div>
+    </div>
+    <div class="type-row">
+      <div class="spec">日期/标签</div>
+      <div class="sample" style="font-size:13px;font-weight:600;letter-spacing:1px;color:#888">2026 / 07 / 15</div>
+    </div>
+    <div class="type-row">
+      <div class="spec">事项文字</div>
+      <div class="sample" style="font-size:14px;color:#333">读了一章《原子习惯》</div>
+    </div>
+    <div class="type-row">
+      <div class="spec">暖心句子</div>
+      <div class="sample" style="font-size:15px;font-weight:500;color:#666">今天也辛苦了，你很棒。</div>
+    </div>
+    <div class="type-row">
+      <div class="spec">辅助信息</div>
+      <div class="sample" style="font-size:11px;color:#bbb">完成于 14:32 · 耗时 45分钟</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DESIGN PRINCIPLES ===== -->
+<div class="container">
+  <h2 class="section-title">设计原则</h2>
+  <div class="principles">
+    <div class="principle-row">
+      <div class="num">01</div>
+      <div>
+        <h4>光 > 色</h4>
+        <p>用光的层次（发光、褪色、呼吸）传递信息，而非纯色块。星夜模式的核心是「发光」，不是「上色」。</p>
+      </div>
+    </div>
+    <div class="principle-row">
+      <div class="num">02</div>
+      <div>
+        <h4>克制 > 丰富</h4>
+        <p>脉络模式只用黑白灰+苔绿点缀。不加渐变、不加阴影、不加装饰。纯粹到只剩节点和连线。</p>
+      </div>
+    </div>
+    <div class="principle-row">
+      <div class="num">03</div>
+      <div>
+        <h4>时间感</h4>
+        <p>越远的事情越淡、越小。光的「褪色」是时间流逝的视觉隐喻。不是删除——是自然淡出。</p>
+      </div>
+    </div>
+    <div class="principle-row">
+      <div class="num">04</div>
+      <div>
+        <h4>手绘的温暖</h4>
+        <p>不追求像素级完美。光点的光晕有扩散感，节点的圆有微小的不规则，连线有轻微的抖动。机器画的，但要像人画的。</p>
+      </div>
+    </div>
+    <div class="principle-row">
+      <div class="num">05</div>
+      <div>
+        <h4>动效是呼吸</h4>
+        <p>不做炫技动画。所有动效模拟自然节奏：呼吸、绽放、流动。像看着星空，不是看一场秀。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container" style="text-align:center;padding:60px 0 80px">
+  <p style="font-size:12px;color:#ccc">微光集 · 美术概念设计 v1.0 · 待确认后进入 Phase 1 开发</p>
+</div>
+
+</body>
+</html>

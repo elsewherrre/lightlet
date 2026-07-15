@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>微光集 — 每天点亮你的星</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-card: #161b22;
+    --text: #e6e6e6;
+    --text-dim: #8b949e;
+    --green: #5a8a6a;
+    --green-light: #7ab88a;
+    --gold: #f0c060;
+    --gold-bright: #ffd780;
+    --warm: #d4956a;
+    --radius: 12px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Nav tabs */
+  .nav {
+    display: flex;
+    gap: 4px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    z-index: 10;
+    flex-shrink: 0;
+  }
+  .nav-btn {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text-dim);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all 0.25s;
+  }
+  .nav-btn.active {
+    background: rgba(90,138,106,0.15);
+    color: var(--green-light);
+    border-color: rgba(90,138,106,0.3);
+  }
+
+  /* Views */
+  .view { display: none; flex: 1; overflow: hidden; }
+  .view.active { display: flex; flex-direction: column; }
+
+  /* ===== STRATEGY VIEW ===== */
+  .strategy-view {
+    overflow-y: auto;
+    padding: 24px 16px 40px;
+  }
+  .strategy-view::-webkit-scrollbar { width: 4px; }
+  .strategy-view::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+  .hero {
+    text-align: center;
+    padding: 32px 0 24px;
+  }
+  .hero-emoji { font-size: 48px; margin-bottom: 12px; }
+  .hero h1 { font-size: 28px; font-weight: 700; letter-spacing: 2px; margin-bottom: 8px; }
+  .hero .subtitle { color: var(--text-dim); font-size: 14px; }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--green-light);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card p, .card li {
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text-dim);
+  }
+  .card ul { padding-left: 18px; }
+  .card li { margin-bottom: 4px; }
+
+  .diff-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .diff-table th {
+    text-align: left;
+    padding: 8px 12px;
+    color: var(--text-dim);
+    font-weight: 500;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .diff-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: top;
+  }
+  .diff-table .old { color: #c06060; }
+  .diff-table .new { color: #6ab87a; }
+
+  .principles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (max-width: 500px) { .principles { grid-template-columns: 1fr; } }
+  .principle-item {
+    background: rgba(90,138,106,0.06);
+    border: 1px solid rgba(90,138,106,0.12);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .principle-item .num {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--green);
+    margin-bottom: 6px;
+  }
+  .principle-item .title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .principle-item .desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .roadmap-step {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .roadmap-step:last-child { border: none; }
+  .roadmap-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+  .roadmap-dot.dim { background: rgba(90,138,106,0.3); }
+  .roadmap-step h4 { font-size: 13px; margin-bottom: 4px; }
+  .roadmap-step p { font-size: 12px; color: var(--text-dim); }
+
+  /* ===== PROTOTYPE VIEW ===== */
+  .proto-view {
+    position: relative;
+    flex: 1;
+  }
+
+  canvas#starfield {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: block;
+  }
+
+  /* Greeting */
+  .greeting {
+    position: absolute;
+    top: 48px;
+    left: 0; right: 0;
+    text-align: center;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .greeting .time-msg {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .greeting .warm-msg {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 1px;
+  }
+
+  /* Stats */
+  .stats-bar {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 5;
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .stats-bar span { color: var(--gold); font-weight: 600; }
+
+  /* Bottom input area */
+  .bottom-panel {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 10;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: linear-gradient(transparent, var(--bg) 40%);
+    padding-top: 48px;
+  }
+
+  .pending-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 120px;
+    overflow-y: auto;
+    padding-bottom: 4px;
+  }
+  .pending-list::-webkit-scrollbar { width: 3px; }
+  .pending-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+
+  .pending-chip {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text-dim);
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+  }
+  .pending-chip:hover {
+    background: rgba(90,138,106,0.15);
+    border-color: rgba(90,138,106,0.3);
+    color: var(--text);
+  }
+  .pending-chip:active {
+    transform: scale(0.95);
+  }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .input-row input {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: 12px 18px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--font);
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  .input-row input:focus {
+    border-color: rgba(90,138,106,0.5);
+  }
+  .input-row input::placeholder {
+    color: rgba(255,255,255,0.2);
+  }
+  .add-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(90,138,106,0.4);
+    background: rgba(90,138,106,0.15);
+    color: var(--green-light);
+    font-size: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font);
+  }
+  .add-btn:hover { background: rgba(90,138,106,0.25); }
+  .add-btn:active { transform: scale(0.9); }
+
+  /* Toast */
+  .toast {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: rgba(22,27,34,0.95);
+    border: 1px solid rgba(240,192,96,0.3);
+    border-radius: 16px;
+    padding: 16px 24px;
+    text-align: center;
+    z-index: 20;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+  }
+  .toast.show {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .toast .light-count { font-size: 20px; font-weight: 700; color: var(--gold); }
+  .toast .light-msg { font-size: 13px; color: var(--text-dim); margin-top: 6px; }
+
+  /* Empty state */
+  .empty-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+  .empty-hint .icon { font-size: 36px; margin-bottom: 8px; }
+  .empty-hint .text { font-size: 13px; color: var(--text-dim); }
+
+  /* Done stamp */
+  .done-stamp {
+    position: absolute;
+    top: -30px;
+    z-index: 15;
+    font-size: 13px;
+    color: var(--gold);
+    opacity: 0;
+    animation: stampUp 1.5s ease-out forwards;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  @keyframes stampUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-60px); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+  <button class="nav-btn active" data-view="proto" onclick="switchView('proto')">✨ 体验</button>
+  <button class="nav-btn" data-view="strategy" onclick="switchView('strategy')">📋 方案</button>
+</nav>
+
+<!-- STRATEGY VIEW -->
+<div class="view strategy-view" id="view-strategy">
+  <div class="hero">
+    <div class="hero-emoji">✨</div>
+    <h1>微光集</h1>
+    <p class="subtitle">每天点亮你的星 — 为 INFP 设计的每日记录</p>
+  </div>
+
+  <div class="card">
+    <h3>🔍 问题诊断</h3>
+    <table class="diff-table">
+      <tr><th></th><th>传统待办</th><th>微光集</th></tr>
+      <tr>
+        <td style="color:var(--text-dim)">核心动作</td>
+        <td class="old">打勾 ✓</td>
+        <td class="new">点亮 ✦</td>
+      </tr>
+      <tr>
+        <td style="color:var(--text-dim)">心理感受</td>
+        <td class="old">「还有 3 个没做」焦虑</td>
+        <td class="new">「今天点亮了 5 颗星」满足</td>
+      </tr>
+      <tr>
+        <td style="color:var(--text-dim)">未完成</td>
+        <td class="old">红色 overdue，负罪感</td>
+        <td class="new">安静待着，不催你</td>
+      </tr>
+      <tr>
+        <td style="color:var(--text-dim)">节奏</td>
+        <td class="old">固定模板，被动执行</td>
+        <td class="new">每天自由选择，主动决定</td>
+      </tr>
+      <tr>
+        <td style="color:var(--text-dim)">驱动力</td>
+        <td class="old">外部压力（截止日期）</td>
+        <td class="new">内在满足（看见自己的光）</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>🎯 设计原则</h3>
+    <div class="principles">
+      <div class="principle-item">
+        <div class="num">01</div>
+        <div class="title">无惩罚机制</div>
+        <div class="desc">没做的事不会变红、不会催你。它们只是安静地在那儿，明天再看也行。</div>
+      </div>
+      <div class="principle-item">
+        <div class="num">02</div>
+        <div class="title">自由选择</div>
+        <div class="desc">不预设固定清单。每天打开，自己决定今天想做什么——哪怕只有一件。</div>
+      </div>
+      <div class="principle-item">
+        <div class="num">03</div>
+        <div class="title">可视化积累</div>
+        <div class="desc">每完成一件事就多一颗星。看到星空变亮，是 INFP 最自然的正反馈。</div>
+      </div>
+      <div class="principle-item">
+        <div class="num">04</div>
+        <div class="title">温暖陪伴</div>
+        <div class="desc">一句暖心的话，一个温柔的画面。像朋友轻轻说：「今天辛苦了。」</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🗺️ 开发路线图</h3>
+    <div class="roadmap-step">
+      <div class="roadmap-dot"></div>
+      <div>
+        <h4>Phase 1 · MVP（今天）</h4>
+        <p>单日记录 + 星辰画布 + localStorage · 可直接用的网页</p>
+      </div>
+    </div>
+    <div class="roadmap-step">
+      <div class="roadmap-dot"></div>
+      <div>
+        <h4>Phase 2 · 沉淀</h4>
+        <p>历史回顾日历（看到每个月收集的星图）+ 每周/每月小结</p>
+      </div>
+    </div>
+    <div class="roadmap-step">
+      <div class="roadmap-dot dim"></div>
+      <div>
+        <h4>Phase 3 · 深化</h4>
+        <p>手绘角色陪伴 + 季节/天气变化 + 心情记录 + 导出</p>
+      </div>
+    </div>
+    <div class="roadmap-step">
+      <div class="roadmap-dot dim"></div>
+      <div>
+        <h4>Phase 4 · 完整</h4>
+        <p>PWA 安装到手机 + iCloud 同步 + 小组件</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROTOTYPE VIEW -->
+<div class="view active proto-view" id="view-proto">
+  <canvas id="starfield"></canvas>
+
+  <div class="greeting" id="greeting">
+    <div class="time-msg" id="timeMsg"></div>
+    <div class="warm-msg" id="warmMsg"></div>
+  </div>
+
+  <div class="stats-bar">
+    今日<span id="doneCount">0</span>颗星
+  </div>
+
+  <div class="empty-hint" id="emptyHint">
+    <div class="icon">🌌</div>
+    <div class="text">写下今天想做的事<br>然后一颗颗点亮它们</div>
+  </div>
+
+  <div class="bottom-panel" id="bottomPanel">
+    <div class="pending-list" id="pendingList"></div>
+    <div class="input-row">
+      <input type="text" id="taskInput" placeholder="今天想做什么？" autocomplete="off">
+      <button class="add-btn" onclick="addTask()">+</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ===== DATA LAYER =====
+const STORAGE_KEY = 'lightlet_data';
+const TODAY = new Date().toISOString().split('T')[0];
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return {};
+}
+
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function getToday() {
+  const data = loadData();
+  if (!data[TODAY]) data[TODAY] = { items: [], lastVisit: Date.now() };
+  return data;
+}
+
+function saveToday(todayData) {
+  const data = loadData();
+  data[TODAY] = todayData;
+  saveData(data);
+}
+
+let state = getToday();
+
+// ===== CANVAS SETUP =====
+const canvas = document.getElementById('starfield');
+const ctx = canvas.getContext('2d');
+let W, H;
+let bgStars = [];
+let particles = [];
+let animFrame;
+
+function resize() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = rect.width;
+  H = rect.height;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
+  generateBgStars();
+}
+
+function generateBgStars() {
+  bgStars = [];
+  const count = Math.floor(W * H / 1800);
+  for (let i = 0; i < count; i++) {
+    bgStars.push({
+      x: Math.random() * W,
+      y: Math.random() * H * 0.72,
+      r: Math.random() * 1.2 + 0.3,
+      twinkle: Math.random() * Math.PI * 2,
+      speed: Math.random() * 0.02 + 0.005,
+      opacity: Math.random() * 0.4 + 0.15
+    });
+  }
+}
+
+// ===== DRAWING =====
+function drawBackground() {
+  // Night sky gradient
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#0a0e1a');
+  grad.addColorStop(0.5, '#111827');
+  grad.addColorStop(1, '#1a1f2e');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawGround() {
+  const groundY = H * 0.78;
+  const grad = ctx.createLinearGradient(0, groundY, 0, H);
+  grad.addColorStop(0, 'rgba(20,28,20,0)');
+  grad.addColorStop(0.3, 'rgba(20,28,20,0.6)');
+  grad.addColorStop(1, 'rgba(15,22,15,1)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, groundY, W, H - groundY);
+
+  // Gentle hills
+  ctx.beginPath();
+  ctx.moveTo(0, H);
+  for (let x = 0; x <= W; x += 2) {
+    const y = groundY + Math.sin(x * 0.003) * 18 + Math.sin(x * 0.007 + 1.5) * 12;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(W, H);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(18,26,18,1)';
+  ctx.fill();
+
+  // Small house / warm light
+  const hx = W * 0.82, hy = groundY + 6;
+  // House body
+  ctx.fillStyle = 'rgba(30,22,18,0.8)';
+  ctx.fillRect(hx - 12, hy - 14, 24, 16);
+  // Roof
+  ctx.beginPath();
+  ctx.moveTo(hx - 16, hy - 14);
+  ctx.lineTo(hx, hy - 28);
+  ctx.lineTo(hx + 16, hy - 14);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(35,28,22,0.7)';
+  ctx.fill();
+  // Warm window
+  const glowGrad = ctx.createRadialGradient(hx, hy - 9, 1, hx, hy - 9, 8);
+  glowGrad.addColorStop(0, 'rgba(255,200,130,0.7)');
+  glowGrad.addColorStop(0.5, 'rgba(255,170,90,0.3)');
+  glowGrad.addColorStop(1, 'rgba(255,140,60,0)');
+  ctx.fillStyle = glowGrad;
+  ctx.fillRect(hx - 5, hy - 11, 10, 9);
+}
+
+function drawBgStars(time) {
+  bgStars.forEach(s => {
+    const alpha = s.opacity + Math.sin(s.twinkle + time * s.speed) * 0.2;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(200,210,230,${Math.max(0.05, alpha)})`;
+    ctx.fill();
+  });
+}
+
+// Draw a single light point with glow
+function drawLightPoint(x, y, r, alpha, color = '#f0c060') {
+  // Outer glow
+  const glow = ctx.createRadialGradient(x, y, 0, x, y, r * 3);
+  glow.addColorStop(0, color.replace(')', `,${alpha})`).replace('rgb', 'rgba'));
+  glow.addColorStop(0.4, `rgba(240,192,96,${alpha * 0.3})`);
+  glow.addColorStop(1, 'rgba(240,192,96,0)');
+  ctx.beginPath();
+  ctx.arc(x, y, r * 3, 0, Math.PI * 2);
+  ctx.fillStyle = glow;
+  ctx.fill();
+
+  // Core
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(255,220,140,${alpha})`;
+  ctx.fill();
+
+  // Bright center
+  ctx.beginPath();
+  ctx.arc(x, y, r * 0.4, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(255,240,200,${Math.min(1, alpha * 1.2)})`;
+  ctx.fill();
+}
+
+function drawUserLights(time) {
+  const items = state.items || [];
+  const doneItems = items.filter(i => i.done);
+  const undoneItems = items.filter(i => !i.done);
+
+  // Not-done: dim dots near ground
+  const groundY = H * 0.78;
+  undoneItems.forEach((item, i) => {
+    const x = W * 0.15 + (i % 5) * (W * 0.15);
+    const y = groundY + 20 + Math.floor(i / 5) * 28;
+    ctx.beginPath();
+    ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(180,180,200,0.25)';
+    ctx.fill();
+    // Label
+    ctx.fillStyle = 'rgba(180,180,200,0.35)';
+    ctx.font = '11px ' + getComputedStyle(document.body).fontFamily;
+    ctx.fillText(truncate(item.text, 6), x + 8, y + 4);
+  });
+
+  // Done: bright floating stars
+  doneItems.forEach((item, i) => {
+    const seed = hashItem(item.id);
+    const baseX = W * 0.1 + (seed * W * 0.8);
+    const baseY = H * 0.12 + ((seed * 37) % 1) * H * 0.5;
+    const floatY = Math.sin(time * 0.001 + seed * 10) * 6;
+    const floatX = Math.cos(time * 0.0007 + seed * 8) * 4;
+    const alpha = 0.7 + Math.sin(time * 0.002 + seed * 6) * 0.3;
+
+    drawLightPoint(baseX + floatX, baseY + floatY, 4 + (seed % 3), alpha);
+
+    // Subtle label nearby
+    if (doneItems.length <= 6) {
+      ctx.fillStyle = `rgba(240,192,96,${alpha * 0.6})`;
+      ctx.font = '10px ' + getComputedStyle(document.body).fontFamily;
+      ctx.fillText(truncate(item.text, 5), baseX + floatX + 10, baseY + floatY - 4);
+    }
+  });
+}
+
+function drawParticles() {
+  particles = particles.filter(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life -= 0.02;
+    p.vy += 0.03;
+    if (p.life <= 0) return false;
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,220,140,${p.life})`;
+    ctx.fill();
+    return true;
+  });
+}
+
+function draw(time) {
+  ctx.clearRect(0, 0, W, H);
+  drawBackground();
+  drawBgStars(time);
+  drawGround();
+  drawUserLights(time);
+  drawParticles();
+  animFrame = requestAnimationFrame(draw);
+}
+
+// ===== INTERACTION =====
+function hashItem(id) {
+  let h = 0;
+  for (let c of id) { h = ((h << 5) - h) + c.charCodeAt(0); h |= 0; }
+  return Math.abs(h) / 2147483648;
+}
+
+function truncate(text, max) {
+  if (!text) return '';
+  return text.length > max ? text.slice(0, max) + '…' : text;
+}
+
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function spawnParticles(x, y, count) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 3 + 1;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 2,
+      r: Math.random() * 2 + 1,
+      life: 1
+    });
+  }
+}
+
+function renderPendingList() {
+  const list = document.getElementById('pendingList');
+  const items = state.items || [];
+  const undone = items.filter(i => !i.done);
+
+  list.innerHTML = undone.map(item =>
+    `<div class="pending-chip" data-id="${item.id}">${escapeHtml(item.text)}</div>`
+  ).join('');
+
+  // Add click handlers
+  list.querySelectorAll('.pending-chip').forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      const id = chip.dataset.id;
+      completeTask(id);
+    });
+  });
+}
+
+function updateUI() {
+  const doneCount = (state.items || []).filter(i => i.done).length;
+  const totalCount = (state.items || []).length;
+
+  document.getElementById('doneCount').textContent = doneCount;
+  document.getElementById('emptyHint').style.display =
+    totalCount === 0 ? 'block' : 'none';
+
+  renderPendingList();
+  updateGreeting();
+}
+
+function updateGreeting() {
+  const hour = new Date().getHours();
+  let timeMsg, warmMsg;
+  const doneCount = (state.items || []).filter(i => i.done).length;
+
+  if (hour < 10) { timeMsg = '早安'; warmMsg = doneCount > 0 ? '新的一天已经开始了' : '慢慢来，今天才开始'; }
+  else if (hour < 14) { timeMsg = '午安'; warmMsg = doneCount > 0 ? '下午也要加油哦' : '不着急，按你的节奏来'; }
+  else if (hour < 19) { timeMsg = '下午好'; warmMsg = doneCount > 0 ? '今天已经很棒了' : '任何时候开始都不晚'; }
+  else { timeMsg = '晚上好'; warmMsg = doneCount > 0 ? '今天辛苦了，你很棒' : '夜晚也很适合做点小事'; }
+
+  document.getElementById('timeMsg').textContent = timeMsg;
+  document.getElementById('warmMsg').textContent = warmMsg;
+}
+
+function showToast(icon, msg) {
+  const toast = document.getElementById('toast');
+  toast.innerHTML = `<div style="font-size:32px">${icon}</div><div style="margin-top:8px;font-size:14px;color:var(--text)">${msg}</div>`;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function addTask() {
+  const input = document.getElementById('taskInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const item = { id: generateId(), text, done: false, createdAt: Date.now() };
+  state.items = state.items || [];
+  state.items.push(item);
+  saveToday(state);
+  input.value = '';
+  updateUI();
+  showToast('🌱', '记下了');
+  input.focus();
+}
+
+function completeTask(id) {
+  const item = (state.items || []).find(i => i.id === id);
+  if (!item || item.done) return;
+
+  item.done = true;
+  item.completedAt = Date.now();
+  saveToday(state);
+
+  // Spawn particles from the chip position
+  const chip = document.querySelector(`.pending-chip[data-id="${id}"]`);
+  if (chip) {
+    const rect = chip.getBoundingClientRect();
+    const canvasRect = canvas.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2 - canvasRect.left;
+    const cy = rect.top + rect.height / 2 - canvasRect.top;
+    spawnParticles(cx, cy, 20);
+  }
+
+  updateUI();
+
+  const doneCount = (state.items || []).filter(i => i.done).length;
+  const msgs = [
+    '又点亮了一颗星 ✨',
+    '真棒！',
+    '今天又进一步',
+    '这颗星属于你',
+    '做得漂亮',
+  ];
+  showToast('✨', msgs[Math.floor(Math.random() * msgs.length)]);
+}
+
+// ===== NAVIGATION =====
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelector(`.nav-btn[data-view="${name}"]`).classList.add('active');
+
+  if (name === 'proto') {
+    resize();
+    updateUI();
+  }
+}
+
+// ===== KEYBOARD =====
+document.getElementById('taskInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') addTask();
+});
+
+// ===== INIT =====
+window.addEventListener('resize', resize);
+resize();
+updateUI();
+requestAnimationFrame(draw);
+
+// Ensure initial state exists
+if (!state.items) { state.items = []; saveToday(state); }
+</script>
+</body>
+</html>
