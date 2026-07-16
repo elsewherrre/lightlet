@@ -67,13 +67,25 @@
   </main>
   <script>
     const iso=d=>{const x=new Date();x.setDate(x.getDate()+d);return x.toISOString().slice(0,10)};
-    const sample=[
-      {id:1,text:'给绿萝浇了水',status:'done',date:iso(0)},{id:2,text:'认真吃了早餐',status:'done',date:iso(0)},{id:3,text:'读完一小章',status:'pending',date:iso(0)},{id:4,text:'和妈妈通电话',status:'done',date:iso(-1)},{id:5,text:'整理旧照片',status:'expired',date:iso(-3)},{id:6,text:'给朋友写封信',status:'expired',date:iso(-5)},{id:7,text:'看看那部电影',status:'expired',date:iso(-7)}
+    const seedData=[
+      ['给绿萝浇了水','done',0],['认真吃了早餐','done',0],['读完一小章','pending',0],['和妈妈通电话','done',-1],['晒了十分钟太阳','done',0],
+      ['出门散了一会步','done',-1],['整理了旧照片','expired',-3],['给朋友写封信','expired',-5],['看完一部电影','done',-2],['好好洗了个澡','done',0],
+      ['换上干净床单','done',-2],['听完喜欢的专辑','done',-1],['收拾了书桌','done',-3],['学会一道新菜','done',-4],['画了一张小画','done',-1],
+      ['记下一个梦','done',-2],['回复一条消息','done',0],['对自己说辛苦了','done',-1],['喝够了今天的水','pending',0],['早睡半个小时','pending',0],
+      ['读一首喜欢的诗','done',-4],['给窗台擦了灰','done',-3],['认识一种植物','done',-6],['拍下傍晚的云','done',-1],['烤了一小盘饼干','done',-5],
+      ['练习十分钟英语','done',-2],['把衣服叠整齐','done',-3],['完成一页手账','done',-4],['和老朋友聊聊天','pending',0],['去公园看看花','pending',0],
+      ['写下三个好消息','done',-5],['修好松掉的纽扣','done',-6],['清理手机相册','expired',-7],['尝试一次冥想','done',-2],['给自己泡杯热茶','done',0],
+      ['听见一声鸟叫','done',-1],['绕远路回了家','done',-4],['把垃圾带下楼','done',-1],['学会一个新单词','done',-3],['给家人一个拥抱','done',-2],
+      ['写下突然的灵感','done',-1],['买一束喜欢的花','expired',-8],['整理下载文件夹','expired',-9],['预约一次体检','pending',0],['做五分钟拉伸','done',0],
+      ['拒绝一件勉强的事','done',-6],['观察夜晚的月亮','done',-2],['读完收藏的文章','done',-4],['给未来的自己留言','expired',-10],['安静发了一会呆','done',0]
     ];
-    let items=JSON.parse(localStorage.getItem('lightlet-items')||'null')||sample, mode='night', filterDate=null, selected=null, visibleNodes=[];
+    const sample=seedData.map((x,i)=>({id:1001+i,text:x[0],status:x[1],date:iso(x[2])}));
+    let stored=JSON.parse(localStorage.getItem('lightlet-items')||'null'),items=stored||sample,mode='night',filterDate=null,selected=null,visibleNodes=[];
+    if(stored&&!localStorage.getItem('lightlet-seed-v2')){const existing=new Set(stored.map(x=>x.text));items=[...stored,...sample.filter(x=>!existing.has(x.text))];localStorage.setItem('lightlet-items',JSON.stringify(items))}
+    localStorage.setItem('lightlet-seed-v2','1');
     items=items.map(x=>({...x,date:x.date||iso(Number.isFinite(x.day)?x.day:0)}));
     const $=s=>document.querySelector(s),app=$('#app'),canvas=$('#canvas'),stars=$('#stars'),threads=$('#threads'),lines=$('#threadLines');
-    const layouts=[[20,20],[66,13],[45,39],[80,48],[17,64],[58,72],[83,84],[34,88],[75,30],[30,52],[55,91]];
+    function layoutAt(i){const col=i%5,row=Math.floor(i/5),jitter=((i*17)%9)-4;return[10+col*20+jitter*.45,7+row*9.25+((i*13)%5-2)*.35]}
     function persist(){localStorage.setItem('lightlet-items',JSON.stringify(items))}
     function current(){return filterDate?items.filter(x=>x.date===filterDate):items}
     function prettyDate(value){return new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'short'}).format(new Date(value+'T12:00:00'))}
@@ -87,7 +99,7 @@
     function render(){
       setCopy();selected=null;$('#actions').classList.remove('show');const list=current();stars.innerHTML='';threads.querySelectorAll('.node').forEach(n=>n.remove());lines.innerHTML='';visibleNodes=[];
       const empty=$('#empty');empty.classList.toggle('show',!list.length);empty.querySelector('span').textContent='这一天还没有记录。慢慢来。';
-      list.forEach((item,i)=>{const [x,y]=layouts[i%layouts.length],phase=i*1.37;visibleNodes.push({x,y,phase,item});const b=document.createElement('button');b.className=`star ${item.status}`;b.innerHTML=`<span>${item.text}</span>`;b.onclick=()=>select(item.id,b);stars.appendChild(b);const n=document.createElement('button');n.className=`node ${item.status}`;n.innerHTML=`<span>${item.text}</span>`;n.onclick=()=>select(item.id,n);threads.appendChild(n);visibleNodes[i].star=b;visibleNodes[i].node=n;if(i){const l=document.createElementNS('http://www.w3.org/2000/svg','line');if(item.status==='expired'||list[i-1].status==='expired')l.classList.add('faded');lines.appendChild(l);visibleNodes[i].line=l}});
+      list.forEach((item,i)=>{const [x,y]=layoutAt(i),phase=i*1.37;visibleNodes.push({x,y,phase,item});const b=document.createElement('button');b.className=`star ${item.status}`;b.innerHTML=`<span>${item.text}</span>`;b.onclick=()=>select(item.id,b);stars.appendChild(b);const n=document.createElement('button');n.className=`node ${item.status}`;n.innerHTML=`<span>${item.text}</span>`;n.onclick=()=>select(item.id,n);threads.appendChild(n);visibleNodes[i].star=b;visibleNodes[i].node=n;if(i){const l=document.createElementNS('http://www.w3.org/2000/svg','line');if(item.status==='expired'||list[i-1].status==='expired')l.classList.add('faded');lines.appendChild(l);visibleNodes[i].line=l}});
       animate(performance.now());
     }
     let raf=0;function animate(t){cancelAnimationFrame(raf);visibleNodes.forEach((v,i)=>{const dx=Math.sin(t/2300+v.phase)*1.2,dy=Math.cos(t/2700+v.phase)*1.05;v.cx=v.x+dx;v.cy=v.y+dy;const pos=`left:${v.cx}%;top:${v.cy}%`;v.star.style.cssText=pos;v.node.style.cssText=pos;if(v.line){const a=visibleNodes[i-1];v.line.setAttribute('x1',a.cx);v.line.setAttribute('y1',a.cy);v.line.setAttribute('x2',v.cx);v.line.setAttribute('y2',v.cy)}});raf=requestAnimationFrame(animate)}
