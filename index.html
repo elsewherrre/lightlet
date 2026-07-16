@@ -130,6 +130,18 @@
     padding: 6px 10px; border-radius: 6px; transition: all 0.2s;
   }
   .footer .clear:hover { color: #8a6a5a; background: rgba(255,255,255,0.03); }
+  .loading {
+    text-align: center;
+    color: #5a5a5a;
+    padding: 40px 0;
+    font-size: 14px;
+  }
+  .empty {
+    text-align: center;
+    color: #3a3a3a;
+    padding: 40px 0;
+    font-size: 14px;
+  }
 </style>
 </head>
 <body>
@@ -145,7 +157,9 @@
     <button id="addBtn">+ 微光</button>
   </div>
 
-  <div class="items" id="items"></div>
+  <div class="items" id="items">
+    <div class="loading">正在点亮星空…</div>
+  </div>
 
   <div class="footer">
     <span class="count" id="count"></span>
@@ -153,83 +167,101 @@
   </div>
 </div>
 
+<!-- 底层模块 — 顺序不能变 -->
+<script src="js/utils.js"></script>
+<script src="js/db.js"></script>
+<script src="js/api.js"></script>
+
 <script>
-const STORAGE_KEY = 'lightlet_items_v1';
+/* ═══════════════════════════════════════════════════
+   微光集 — 视图层
+   通过 LightletAPI 操作数据，不直接碰存储层
+   ═══════════════════════════════════════════════════ */
+var API = LightletAPI;
+var U = LightletUtils;
 
-function today() {
-  return new Date().toLocaleDateString('zh-CN', { month:'long', day:'numeric', weekday:'short' });
-}
-function now() {
-  return new Date().toLocaleTimeString('zh-CN', { hour:'2-digit', minute:'2-digit' });
-}
-function load() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
-}
-function save(items) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+/* ─── 渲染 ─── */
+function render(items) {
+  var container = document.getElementById('items');
+  var countEl = document.getElementById('count');
+
+  if (!items.length) {
+    container.innerHTML = '<div class="empty">还没有微光，添加第一件事吧</div>';
+    countEl.innerHTML = '今日微光 <strong>0</strong> / 0';
+    return;
+  }
+
+  var doneCount = 0;
+  container.innerHTML = items.map(function (item) {
+    var isDone = item.status === 'done';
+    if (isDone) doneCount++;
+
+    var timeHtml = '';
+    if (isDone && item.completedAt) {
+      timeHtml = '<span class="time">' + U.timeStr(item.completedAt) + '</span>';
+    } else {
+      timeHtml = '<span class="time">' + U.timeStr(item.createdAt) + '</span>';
+    }
+
+    return '<div class="item' + (isDone ? ' done' : '') + '" data-id="' + item.id + '">' +
+      '<div class="star" data-action="toggle"></div>' +
+      '<span class="text">' + U.esc(item.text) + '</span>' +
+      timeHtml +
+      '<div class="delete" data-action="delete">&times;</div>' +
+    '</div>';
+  }).join('');
+
+  countEl.innerHTML = '今日微光 <strong>' + doneCount + '</strong> / ' + items.length;
+  document.getElementById('todayDate').textContent = U.displayDate();
 }
 
-function render() {
-  const items = load();
-  const container = document.getElementById('items');
-  const countEl = document.getElementById('count');
-  const done = items.filter(i => i.done).length;
-
-  container.innerHTML = items.map((item, idx) => `
-    <div class="item${item.done ? ' done' : ''}" data-idx="${idx}">
-      <div class="star" data-action="toggle"></div>
-      <span class="text">${esc(item.text)}</span>
-      <span class="time">${item.time || ''}</span>
-      <div class="delete" data-action="delete">×</div>
-    </div>
-  `).join('') || '<div style="text-align:center;color:#3a3a3a;padding:40px 0;font-size:14px;">还没有微光，添加第一件事吧</div>';
-
-  countEl.innerHTML = `今日微光 <strong>${done}</strong> / ${items.length}`;
-  document.getElementById('todayDate').textContent = today();
-}
-
-function esc(s) {
-  const div = document.createElement('div');
-  div.textContent = s;
-  return div.innerHTML;
-}
-
-document.getElementById('addBtn').addEventListener('click', () => {
-  const input = document.getElementById('input');
-  const text = input.value.trim();
+/* ─── 事件处理 ─── */
+document.getElementById('addBtn').addEventListener('click', function () {
+  var input = document.getElementById('input');
+  var text = input.value.trim();
   if (!text) return;
-  const items = load();
-  items.push({ text, time: now(), done: false, created: Date.now() });
-  save(items);
-  input.value = '';
-  render();
+
+  API.add(text).then(function () {
+    input.value = '';
+    refresh();
+  });
 });
-document.getElementById('input').addEventListener('keydown', (e) => {
+
+document.getElementById('input').addEventListener('keydown', function (e) {
   if (e.key === 'Enter') document.getElementById('addBtn').click();
 });
-document.getElementById('items').addEventListener('click', (e) => {
-  const action = e.target.dataset.action;
-  const row = e.target.closest('.item');
+
+document.getElementById('items').addEventListener('click', function (e) {
+  var action = e.target.dataset.action;
+  var row = e.target.closest('.item');
   if (!row) return;
-  const idx = parseInt(row.dataset.idx);
-  const items = load();
+  var id = row.dataset.id;
+
   if (action === 'toggle') {
-    items[idx].done = !items[idx].done;
-    if (items[idx].done) items[idx].completedTime = now();
-    save(items);
-    render();
+    var isDone = row.classList.contains('done');
+    var op = isDone ? API.uncomplete(id) : API.complete(id);
+    op.then(refresh);
   } else if (action === 'delete') {
-    items.splice(idx, 1);
-    save(items);
-    render();
+    API.deleteLight(id).then(refresh);
   }
 });
-document.getElementById('clearBtn').addEventListener('click', () => {
-  const items = load().filter(i => !i.done);
-  save(items);
-  render();
+
+document.getElementById('clearBtn').addEventListener('click', function () {
+  API.getToday().then(function (items) {
+    var doneIds = items.filter(function (i) { return i.status === 'done'; }).map(function (i) { return i.id; });
+    if (!doneIds.length) return;
+    Promise.all(doneIds.map(function (id) { return API.deleteLight(id); })).then(refresh);
+  });
 });
-render();
+
+function refresh() {
+  API.getToday().then(render);
+}
+
+/* ─── 启动 ─── */
+API.init().then(function () {
+  refresh();
+});
 </script>
 </body>
 </html>

@@ -62,9 +62,7 @@
   .add-row input:focus {
     border-color: rgba(212,168,83,0.4);
   }
-  .add-row input::placeholder {
-    color: #4a4a4a;
-  }
+  .add-row input::placeholder { color: #4a4a4a; }
   .add-row button {
     background: rgba(212,168,83,0.12);
     border: 1px solid rgba(212,168,83,0.2);
@@ -76,9 +74,7 @@
     white-space: nowrap;
     transition: all 0.2s;
   }
-  .add-row button:active {
-    background: rgba(212,168,83,0.2);
-  }
+  .add-row button:active { background: rgba(212,168,83,0.2); }
   .items {
     flex: 1;
     display: flex;
@@ -96,91 +92,55 @@
     transition: all 0.3s;
     cursor: pointer;
   }
-  .item.done {
-    opacity: 0.55;
-    border-color: transparent;
-  }
+  .item.done { opacity: 0.55; border-color: transparent; }
   .item .star {
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
+    width: 22px; height: 22px; flex-shrink: 0;
     border-radius: 50%;
     border: 1.5px solid rgba(212,168,83,0.3);
     transition: all 0.4s ease;
-    position: relative;
   }
   .item.done .star {
     background: radial-gradient(circle at 45% 40%, #f5d78c, #d4a853 60%, #a07828);
     border-color: #d4a853;
     box-shadow: 0 0 12px rgba(212,168,83,0.35), 0 0 3px rgba(212,168,83,0.25);
   }
-  .item .text {
-    flex: 1;
-    font-size: 15px;
-    color: #c4bcaa;
-    transition: all 0.3s;
-  }
-  .item.done .text {
-    color: #6a6a6a;
-    text-decoration: line-through;
-    text-decoration-color: rgba(212,168,83,0.25);
-  }
-  .item .time {
-    font-size: 11px;
-    color: #4a4a4a;
-    flex-shrink: 0;
-  }
-  .item.done .time {
-    color: #5a4a30;
-  }
+  .item .text { flex: 1; font-size: 15px; color: #c4bcaa; transition: all 0.3s; }
+  .item.done .text { color: #6a6a6a; text-decoration: line-through; text-decoration-color: rgba(212,168,83,0.25); }
+  .item .time { font-size: 11px; color: #4a4a4a; flex-shrink: 0; }
+  .item.done .time { color: #5a4a30; }
   .item .delete {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    font-size: 13px;
-    color: transparent;
-    transition: all 0.2s;
-    flex-shrink: 0;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; font-size: 13px;
+    color: transparent; transition: all 0.2s; flex-shrink: 0;
   }
-  .item:hover .delete {
-    color: #5a3a3a;
-  }
-  .item .delete:active {
-    background: rgba(255,80,60,0.12);
-    color: #d44;
-  }
+  .item:hover .delete { color: #5a3a3a; }
+  .item .delete:active { background: rgba(255,80,60,0.12); color: #d44; }
   .footer {
     margin-top: 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex; justify-content: space-between; align-items: center;
     padding-top: 20px;
     border-top: 1px solid rgba(255,255,255,0.04);
   }
-  .footer .count {
-    font-size: 13px;
-    color: #5a5a5a;
-  }
-  .footer .count strong {
-    color: #d4a853;
-    font-weight: 500;
-  }
+  .footer .count { font-size: 13px; color: #5a5a5a; }
+  .footer .count strong { color: #d4a853; font-weight: 500; }
   .footer .clear {
-    font-size: 12px;
-    color: #4a4a4a;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 6px 10px;
-    border-radius: 6px;
-    transition: all 0.2s;
+    font-size: 12px; color: #4a4a4a;
+    background: none; border: none; cursor: pointer;
+    padding: 6px 10px; border-radius: 6px; transition: all 0.2s;
   }
-  .footer .clear:hover {
-    color: #8a6a5a;
-    background: rgba(255,255,255,0.03);
+  .footer .clear:hover { color: #8a6a5a; background: rgba(255,255,255,0.03); }
+  .loading {
+    text-align: center;
+    color: #5a5a5a;
+    padding: 40px 0;
+    font-size: 14px;
+  }
+  .empty {
+    text-align: center;
+    color: #3a3a3a;
+    padding: 40px 0;
+    font-size: 14px;
   }
 </style>
 </head>
@@ -193,11 +153,13 @@
   <p class="subtitle">每件小事都是一点微光。<br>汇集起来，就是你的星空。</p>
 
   <div class="add-row">
-    <input type="text" id="input" placeholder="添加一件事…" maxlength="80">
+    <input type="text" id="input" placeholder="添加一件事…" maxlength="80" autocomplete="off">
     <button id="addBtn">+ 微光</button>
   </div>
 
-  <div class="items" id="items"></div>
+  <div class="items" id="items">
+    <div class="loading">正在点亮星空…</div>
+  </div>
 
   <div class="footer">
     <span class="count" id="count"></span>
@@ -205,91 +167,94 @@
   </div>
 </div>
 
+<!-- 底层模块 — 注意路径：微光集/ 目录访问 ../js/ -->
+<script src="../js/utils.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/api.js"></script>
+
 <script>
-const STORAGE_KEY = 'lightlet_items_v1';
+var API = LightletAPI;
+var U = LightletUtils;
 
-function today() {
-  return new Date().toLocaleDateString('zh-CN', { month:'long', day:'numeric', weekday:'short' });
+function render(items) {
+  var container = document.getElementById('items');
+  var countEl = document.getElementById('count');
+
+  if (!items.length) {
+    container.innerHTML = '<div class="empty">还没有微光，添加第一件事吧</div>';
+    countEl.innerHTML = '今日微光 <strong>0</strong> / 0';
+    return;
+  }
+
+  var doneCount = 0;
+  container.innerHTML = items.map(function (item) {
+    var isDone = item.status === 'done';
+    if (isDone) doneCount++;
+
+    var timeHtml = '';
+    if (isDone && item.completedAt) {
+      timeHtml = '<span class="time">' + U.timeStr(item.completedAt) + '</span>';
+    } else {
+      timeHtml = '<span class="time">' + U.timeStr(item.createdAt) + '</span>';
+    }
+
+    return '<div class="item' + (isDone ? ' done' : '') + '" data-id="' + item.id + '">' +
+      '<div class="star" data-action="toggle"></div>' +
+      '<span class="text">' + U.esc(item.text) + '</span>' +
+      timeHtml +
+      '<div class="delete" data-action="delete">&times;</div>' +
+    '</div>';
+  }).join('');
+
+  countEl.innerHTML = '今日微光 <strong>' + doneCount + '</strong> / ' + items.length;
+  document.getElementById('todayDate').textContent = U.displayDate();
 }
 
-function now() {
-  return new Date().toLocaleTimeString('zh-CN', { hour:'2-digit', minute:'2-digit' });
-}
-
-function load() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
-}
-
-function save(items) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-}
-
-function render() {
-  const items = load();
-  const container = document.getElementById('items');
-  const countEl = document.getElementById('count');
-  const done = items.filter(i => i.done).length;
-
-  container.innerHTML = items.map((item, idx) => `
-    <div class="item${item.done ? ' done' : ''}" data-idx="${idx}">
-      <div class="star" data-action="toggle"></div>
-      <span class="text">${esc(item.text)}</span>
-      <span class="time">${item.time || ''}</span>
-      <div class="delete" data-action="delete">×</div>
-    </div>
-  `).join('') || '<div style="text-align:center;color:#3a3a3a;padding:40px 0;font-size:14px;">还没有微光，添加第一件事吧</div>';
-
-  countEl.innerHTML = `今日微光 <strong>${done}</strong> / ${items.length}`;
-  document.getElementById('todayDate').textContent = today();
-}
-
-function esc(s) {
-  const div = document.createElement('div');
-  div.textContent = s;
-  return div.innerHTML;
-}
-
-document.getElementById('addBtn').addEventListener('click', () => {
-  const input = document.getElementById('input');
-  const text = input.value.trim();
+document.getElementById('addBtn').addEventListener('click', function () {
+  var input = document.getElementById('input');
+  var text = input.value.trim();
   if (!text) return;
-  const items = load();
-  items.push({ text, time: now(), done: false, created: Date.now() });
-  save(items);
-  input.value = '';
-  render();
+
+  API.add(text).then(function () {
+    input.value = '';
+    refresh();
+  });
 });
 
-document.getElementById('input').addEventListener('keydown', (e) => {
+document.getElementById('input').addEventListener('keydown', function (e) {
   if (e.key === 'Enter') document.getElementById('addBtn').click();
 });
 
-document.getElementById('items').addEventListener('click', (e) => {
-  const action = e.target.dataset.action;
-  const row = e.target.closest('.item');
+document.getElementById('items').addEventListener('click', function (e) {
+  var action = e.target.dataset.action;
+  var row = e.target.closest('.item');
   if (!row) return;
-  const idx = parseInt(row.dataset.idx);
-  const items = load();
+  var id = row.dataset.id;
 
   if (action === 'toggle') {
-    items[idx].done = !items[idx].done;
-    if (items[idx].done) items[idx].completedTime = now();
-    save(items);
-    render();
+    var isDone = row.classList.contains('done');
+    var op = isDone ? API.uncomplete(id) : API.complete(id);
+    op.then(refresh);
   } else if (action === 'delete') {
-    items.splice(idx, 1);
-    save(items);
-    render();
+    API.deleteLight(id).then(refresh);
   }
 });
 
-document.getElementById('clearBtn').addEventListener('click', () => {
-  const items = load().filter(i => !i.done);
-  save(items);
-  render();
+document.getElementById('clearBtn').addEventListener('click', function () {
+  API.getToday().then(function (items) {
+    var doneIds = items.filter(function (i) { return i.status === 'done'; }).map(function (i) { return i.id; });
+    if (!doneIds.length) return;
+    Promise.all(doneIds.map(function (id) { return API.deleteLight(id); })).then(refresh);
+  });
 });
 
-render();
+function refresh() {
+  API.getToday().then(render);
+}
+
+API.init().then(function () {
+  refresh();
+});
 </script>
 </body>
 </html>
