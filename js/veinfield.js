@@ -16,6 +16,7 @@ window.VeinField = (function () {
   var lightPositions = {};
   var animFrame, animTime = 0;
   var selectedId = null;
+  var dashOffset = 0;
 
   /* ═══════════════════════════════════════
     初始化
@@ -79,7 +80,6 @@ window.VeinField = (function () {
     var h = hashStr(id);
     var x = margin + ((h & 0xFFFF) / 0xFFFF) * maxW;
     var y = margin + (((h >>> 16) & 0xFFFF) / 0xFFFF) * maxH;
-    // 网格化微调避免重叠
     var col = idx % 4;
     var row = Math.floor(idx / 4);
     var jx = (col - 1.5) * 6;
@@ -93,6 +93,7 @@ window.VeinField = (function () {
   function startLoop() {
     function frame(now) {
       animTime = now;
+      dashOffset = (dashOffset - 0.25) % 20;
       draw(now);
       animFrame = requestAnimationFrame(frame);
     }
@@ -117,11 +118,12 @@ window.VeinField = (function () {
   /* ─── 背景网格点 ─── */
   function drawGridPoints(t) {
     var step = 38;
-    ctx.fillStyle = 'rgba(0,0,0,0.03)';
     for (var x = step; x < cssW; x += step) {
       for (var y = step; y < cssH; y += step) {
         var wave = Math.sin(t * 0.0003 + x * 0.01 + y * 0.007) * 0.5;
         var r = 0.8 + wave;
+        var a = 0.03 + wave * 0.02;
+        ctx.fillStyle = 'rgba(0,0,0,' + a.toFixed(3) + ')';
         ctx.beginPath();
         ctx.arc(x, y, r, 0, Math.PI * 2);
         ctx.fill();
@@ -141,22 +143,22 @@ window.VeinField = (function () {
         var pa = lightPositions[a.id], pb = lightPositions[b.id];
         if (!pa || !pb) continue;
         var timeGap = Math.abs(a.completedAt - b.completedAt);
-        if (timeGap < 7200000) { // 2 小时内
-          pairs.push({ a: pa, b: pb, gap: timeGap });
+        if (timeGap < 7200000) {
+          pairs.push({ a: pa, b: pb, gap: timeGap, hash: hashFloat(a.id + b.id) });
         }
       }
     }
 
-    // 最多画 12 条，取时间最近的
     pairs.sort(function (x, y) { return x.gap - y.gap; });
     pairs = pairs.slice(0, 12);
 
     for (var k = 0; k < pairs.length; k++) {
       var p = pairs[k];
-      var alpha = 0.06 + (1 - p.gap / 7200000) * 0.10;
+      var alpha = 0.06 + (1 - p.gap / 7200000) * 0.14;
       ctx.strokeStyle = 'rgba(0,0,0,' + alpha.toFixed(3) + ')';
-      ctx.lineWidth = 0.6;
-      ctx.setLineDash([3, 8]);
+      ctx.lineWidth = 0.7;
+      ctx.setLineDash([4, 9]);
+      ctx.lineDashOffset = dashOffset + p.hash * 20;
       ctx.beginPath();
       ctx.moveTo(p.a.x, p.a.y);
       ctx.lineTo(p.b.x, p.b.y);
@@ -172,71 +174,75 @@ window.VeinField = (function () {
       var pos = lightPositions[light.id];
       if (!pos) continue;
 
+      var driftX = Math.sin(t * 0.0005 + hashFloat(light.id) * Math.PI * 2) * 2.0;
+      var driftY = Math.cos(t * 0.0004 + hashFloat(light.id) * Math.PI * 2) * 2.0;
+      var finalPos = { x: pos.x + driftX, y: pos.y + driftY };
       var isSelected = selectedId === light.id;
 
       if (light.status === 'done') {
-        drawVeinDone(pos.x, pos.y, t, isSelected);
+        drawVeinDone(finalPos.x, finalPos.y, t, isSelected);
       } else if (light.status === 'expired') {
-        drawVeinExpired(pos.x, pos.y, t, isSelected);
+        drawVeinExpired(finalPos.x, finalPos.y, t, isSelected);
       } else {
-        drawVeinPending(pos.x, pos.y, t, isSelected);
+        drawVeinPending(finalPos.x, finalPos.y, t, isSelected);
       }
     }
   }
 
-  /* done：实心黑点 + 微弱呼吸光晕 */
+  /* done：实心黑点 + 更明显呼吸光晕 */
   function drawVeinDone(x, y, t, sel) {
-    var breathe = 1 + Math.sin(t * 0.0015) * 0.06;
+    var breathe = 1 + Math.sin(t * 0.0015) * 0.10;
     var r = sel ? 12 : 9;
     r *= breathe;
 
     // 外光晕
-    var g1 = ctx.createRadialGradient(x, y, r * 0.6, x, y, r * 1.8);
-    g1.addColorStop(0, 'rgba(0,0,0,0.08)');
+    var g1 = ctx.createRadialGradient(x, y, r * 0.6, x, y, r * 2.0);
+    g1.addColorStop(0, 'rgba(0,0,0,0.10)');
     g1.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g1;
-    ctx.beginPath(); ctx.arc(x, y, r * 1.8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, r * 2.0, 0, Math.PI * 2); ctx.fill();
 
     // 主体
     ctx.fillStyle = '#1a1a1a';
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
 
     // 亮心
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.beginPath(); ctx.arc(x - r * 0.15, y - r * 0.15, r * 0.2, 0, Math.PI * 2); ctx.fill();
 
     // 选中高亮环
     if (sel) {
-      ctx.strokeStyle = 'rgba(90,122,106,0.4)';
+      ctx.strokeStyle = 'rgba(90,122,106,0.45)';
       ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(x, y, r + 5, 0, Math.PI * 2); ctx.stroke();
     }
   }
 
-  /* pending：空心环 + 脉冲 */
+  /* pending：空心环 + 更明显的脉冲 */
   function drawVeinPending(x, y, t, sel) {
-    var pulse = 0.5 + Math.sin(t * 0.0025) * 0.25;
+    var pulse = 0.45 + Math.sin(t * 0.0023) * 0.35;
     var r = sel ? 11 : 8;
 
-    ctx.strokeStyle = 'rgba(0,0,0,' + (pulse * 0.2).toFixed(2) + ')';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(0,0,0,' + (pulse * 0.28).toFixed(2) + ')';
+    ctx.lineWidth = 1.1;
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke();
 
     // 微点
-    ctx.fillStyle = 'rgba(0,0,0,' + (pulse * 0.08).toFixed(2) + ')';
-    ctx.beginPath(); ctx.arc(x, y, 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,' + (0.12 + pulse * 0.18).toFixed(2) + ')';
+    ctx.beginPath(); ctx.arc(x, y, 1.4, 0, Math.PI * 2); ctx.fill();
 
     if (sel) {
-      ctx.strokeStyle = 'rgba(90,122,106,0.4)';
+      ctx.strokeStyle = 'rgba(90,122,106,0.45)';
       ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(x, y, r + 5, 0, Math.PI * 2); ctx.stroke();
     }
   }
 
-  /* expired：浅灰点 */
+  /* expired：浅灰点 + 呼吸 */
   function drawVeinExpired(x, y, t, sel) {
+    var a = 0.11 + Math.sin(t * 0.0012 + hashFloat(x + y) * Math.PI * 2) * 0.04;
     var r = sel ? 10 : 6.5;
-    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    ctx.fillStyle = 'rgba(0,0,0,' + a.toFixed(2) + ')';
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
 
     // 虚线环
@@ -247,7 +253,7 @@ window.VeinField = (function () {
     ctx.setLineDash([]);
 
     if (sel) {
-      ctx.strokeStyle = 'rgba(90,122,106,0.3)';
+      ctx.strokeStyle = 'rgba(90,122,106,0.35)';
       ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(x, y, r + 5, 0, Math.PI * 2); ctx.stroke();
     }
@@ -257,21 +263,28 @@ window.VeinField = (function () {
     点击命中检测
   ═══════════════════════════════════════ */
   function hitTest(mx, my) {
-    var hitR = 28;
+    var hitR = 30;
     for (var i = userLights.length - 1; i >= 0; i--) {
       var light = userLights[i];
       var pos = lightPositions[light.id];
       if (!pos) continue;
-      var dx = mx - pos.x, dy = my - pos.y;
+      var driftX = Math.sin(animTime * 0.0005 + hashFloat(light.id) * Math.PI * 2) * 2.0;
+      var driftY = Math.cos(animTime * 0.0004 + hashFloat(light.id) * Math.PI * 2) * 2.0;
+      var dx = mx - (pos.x + driftX), dy = my - (pos.y + driftY);
       if (dx * dx + dy * dy < hitR * hitR) {
-        return { id: light.id, x: pos.x, y: pos.y, light: light };
+        return { id: light.id, x: pos.x + driftX, y: pos.y + driftY, light: light };
       }
     }
     return null;
   }
 
   function getPos(lightId) {
-    return lightPositions[lightId] || null;
+    var pos = lightPositions[lightId];
+    if (!pos) return null;
+    return {
+      x: pos.x + Math.sin(animTime * 0.0005 + hashFloat(lightId) * Math.PI * 2) * 2.0,
+      y: pos.y + Math.cos(animTime * 0.0004 + hashFloat(lightId) * Math.PI * 2) * 2.0
+    };
   }
 
   /* ═══════════════════════════════════════
@@ -284,6 +297,10 @@ window.VeinField = (function () {
       h = h & h;
     }
     return Math.abs(h);
+  }
+
+  function hashFloat(s) {
+    return (hashStr(String(s)) % 1000) / 1000;
   }
 
   function clamp(v, lo, hi) {

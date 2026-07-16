@@ -1,3 +1,5 @@
 .DS_Store
 .workbuddy/
 *.log
+.playwright-cli/
+*.png
