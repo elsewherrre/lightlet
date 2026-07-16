@@ -2,30 +2,31 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>微光集</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
   body {
     background: #0f0e17;
     color: #e6dfcc;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
-    min-height: 100dvh;
-    overflow-x: hidden;
   }
   .app {
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 24px 20px 40px;
     display: flex;
     flex-direction: column;
-    min-height: 100dvh;
+    height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
   }
+  /* ─── Header ─── */
   .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    padding: 20px 20px 6px;
+    flex-shrink: 0;
   }
   .header h1 {
     font-size: 20px;
@@ -37,231 +38,388 @@
     font-size: 13px;
     color: #8a8a8a;
   }
-  .subtitle {
-    font-size: 13px;
-    color: #5a5a5a;
-    margin-bottom: 24px;
-    line-height: 1.5;
+  /* ─── 星空画布容器 ─── */
+  .star-container {
+    flex: 1;
+    position: relative;
+    min-height: 0;
   }
-  .add-row {
+  .star-container canvas {
+    display: block;
+    position: absolute;
+    top: 0; left: 0;
+  }
+  /* ─── 信息卡片 ─── */
+  .info-card {
+    position: absolute;
+    z-index: 10;
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+  }
+  .info-card.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  .info-card-inner {
+    background: rgba(20,18,28,0.95);
+    border: 1px solid rgba(212,168,83,0.25);
+    border-radius: 14px;
+    padding: 14px 16px;
+    min-width: 180px;
+    max-width: 240px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 1px rgba(212,168,83,0.15);
+  }
+  .card-text {
+    font-size: 15px;
+    color: #e6dfcc;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    word-break: break-word;
+  }
+  .card-meta {
+    font-size: 11px;
+    color: #6a6a6a;
+    margin-bottom: 12px;
     display: flex;
     gap: 10px;
-    margin-bottom: 28px;
   }
-  .add-row input {
+  .card-meta span { display: flex; align-items: center; gap: 3px; }
+  .card-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .card-btn {
     flex: 1;
-    background: rgba(255,255,255,0.04);
+    padding: 7px 0;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .card-btn.primary {
+    background: rgba(212,168,83,0.15);
+    color: #d4a853;
+    border: 1px solid rgba(212,168,83,0.2);
+  }
+  .card-btn.primary:active { background: rgba(212,168,83,0.25); }
+  .card-btn.danger {
+    background: transparent;
+    color: #5a4a4a;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .card-btn.danger:active { color: #d44; border-color: rgba(255,80,60,0.2); }
+  /* ─── 底部输入栏 ─── */
+  .input-bar {
+    display: flex;
+    gap: 10px;
+    padding: 12px 20px 20px;
+    flex-shrink: 0;
+    /* iOS safe area */
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  .input-bar input {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 12px 16px;
     color: #e6dfcc;
     font-size: 15px;
     outline: none;
     transition: border-color 0.3s;
   }
-  .add-row input:focus {
-    border-color: rgba(212,168,83,0.4);
-  }
-  .add-row input::placeholder { color: #4a4a4a; }
-  .add-row button {
+  .input-bar input:focus { border-color: rgba(212,168,83,0.4); }
+  .input-bar input::placeholder { color: #4a4a4a; }
+  .input-bar button {
     background: rgba(212,168,83,0.12);
     border: 1px solid rgba(212,168,83,0.2);
     color: #d4a853;
-    padding: 12px 20px;
-    border-radius: 10px;
+    padding: 12px 18px;
+    border-radius: 12px;
     font-size: 15px;
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.2s;
+    flex-shrink: 0;
   }
-  .add-row button:active { background: rgba(212,168,83,0.2); }
-  .items {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    background: rgba(255,255,255,0.03);
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.05);
-    transition: all 0.3s;
-    cursor: pointer;
-  }
-  .item.done { opacity: 0.55; border-color: transparent; }
-  .item .star {
-    width: 22px; height: 22px; flex-shrink: 0;
-    border-radius: 50%;
-    border: 1.5px solid rgba(212,168,83,0.3);
-    transition: all 0.4s ease;
-  }
-  .item.done .star {
-    background: radial-gradient(circle at 45% 40%, #f5d78c, #d4a853 60%, #a07828);
-    border-color: #d4a853;
-    box-shadow: 0 0 12px rgba(212,168,83,0.35), 0 0 3px rgba(212,168,83,0.25);
-  }
-  .item .text { flex: 1; font-size: 15px; color: #c4bcaa; transition: all 0.3s; }
-  .item.done .text { color: #6a6a6a; text-decoration: line-through; text-decoration-color: rgba(212,168,83,0.25); }
-  .item .time { font-size: 11px; color: #4a4a4a; flex-shrink: 0; }
-  .item.done .time { color: #5a4a30; }
-  .item .delete {
-    width: 28px; height: 28px;
-    display: flex; align-items: center; justify-content: center;
-    border-radius: 8px; font-size: 13px;
-    color: transparent; transition: all 0.2s; flex-shrink: 0;
-  }
-  .item:hover .delete { color: #5a3a3a; }
-  .item .delete:active { background: rgba(255,80,60,0.12); color: #d44; }
-  .footer {
-    margin-top: 24px;
-    display: flex; justify-content: space-between; align-items: center;
-    padding-top: 20px;
-    border-top: 1px solid rgba(255,255,255,0.04);
-  }
-  .footer .count { font-size: 13px; color: #5a5a5a; }
-  .footer .count strong { color: #d4a853; font-weight: 500; }
-  .footer .clear {
-    font-size: 12px; color: #4a4a4a;
-    background: none; border: none; cursor: pointer;
-    padding: 6px 10px; border-radius: 6px; transition: all 0.2s;
-  }
-  .footer .clear:hover { color: #8a6a5a; background: rgba(255,255,255,0.03); }
-  .loading {
-    text-align: center;
-    color: #5a5a5a;
-    padding: 40px 0;
-    font-size: 14px;
-  }
-  .empty {
-    text-align: center;
+  .input-bar button:active { background: rgba(212,168,83,0.22); }
+  /* ─── 提示文字 ─── */
+  .hint {
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%);
     color: #3a3a3a;
-    padding: 40px 0;
     font-size: 14px;
+    text-align: center;
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity 0.5s;
   }
+  /* ─── 底部统计浮标 ─── */
+  .stats-float {
+    position: absolute;
+    bottom: 12px;
+    left: 20px;
+    font-size: 12px;
+    color: #4a4a4a;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .stats-float strong { color: #d4a853; font-weight: 500; }
 </style>
 </head>
 <body>
 <div class="app">
+  <!-- Header -->
   <div class="header">
-    <h1>✦ 微光集</h1>
+    <h1>微光集</h1>
     <span class="date" id="todayDate"></span>
   </div>
-  <p class="subtitle">每件小事都是一点微光。<br>汇集起来，就是你的星空。</p>
 
-  <div class="add-row">
-    <input type="text" id="input" placeholder="添加一件事…" maxlength="80" autocomplete="off">
+  <!-- 星空画布 -->
+  <div class="star-container" id="starContainer">
+    <canvas id="starfield"></canvas>
+    <div class="hint" id="hint">添加第一颗微光吧</div>
+    <div class="stats-float" id="statsFloat"></div>
+    <!-- 信息卡片 -->
+    <div class="info-card" id="infoCard">
+      <div class="info-card-inner">
+        <div class="card-text" id="cardText"></div>
+        <div class="card-meta" id="cardMeta"></div>
+        <div class="card-actions">
+          <button class="card-btn primary" id="cardToggle">点亮</button>
+          <button class="card-btn danger" id="cardDelete">删除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部输入栏 -->
+  <div class="input-bar">
+    <input type="text" id="input" placeholder="添加一件事…" maxlength="80" autocomplete="off" enterkeyhint="done">
     <button id="addBtn">+ 微光</button>
-  </div>
-
-  <div class="items" id="items">
-    <div class="loading">正在点亮星空…</div>
-  </div>
-
-  <div class="footer">
-    <span class="count" id="count"></span>
-    <button class="clear" id="clearBtn">清除已完成</button>
   </div>
 </div>
 
-<!-- 底层模块 — 顺序不能变 -->
 <script src="js/utils.js"></script>
 <script src="js/db.js"></script>
 <script src="js/api.js"></script>
+<script src="js/starfield.js"></script>
 
 <script>
-/* ═══════════════════════════════════════════════════
-   微光集 — 视图层
-   通过 LightletAPI 操作数据，不直接碰存储层
-   ═══════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   微光集 — 星空画布视图层
+   ══════════════════════════════════════════════ */
 var API = LightletAPI;
 var U = LightletUtils;
+var SF = StarField;
 
-/* ─── 渲染 ─── */
-function render(items) {
-  var container = document.getElementById('items');
-  var countEl = document.getElementById('count');
+var canvas, container;
+var currentCardId = null;
 
-  if (!items.length) {
-    container.innerHTML = '<div class="empty">还没有微光，添加第一件事吧</div>';
-    countEl.innerHTML = '今日微光 <strong>0</strong> / 0';
-    return;
-  }
-
-  var doneCount = 0;
-  container.innerHTML = items.map(function (item) {
-    var isDone = item.status === 'done';
-    if (isDone) doneCount++;
-
-    var timeHtml = '';
-    if (isDone && item.completedAt) {
-      timeHtml = '<span class="time">' + U.timeStr(item.completedAt) + '</span>';
-    } else {
-      timeHtml = '<span class="time">' + U.timeStr(item.createdAt) + '</span>';
-    }
-
-    return '<div class="item' + (isDone ? ' done' : '') + '" data-id="' + item.id + '">' +
-      '<div class="star" data-action="toggle"></div>' +
-      '<span class="text">' + U.esc(item.text) + '</span>' +
-      timeHtml +
-      '<div class="delete" data-action="delete">&times;</div>' +
-    '</div>';
-  }).join('');
-
-  countEl.innerHTML = '今日微光 <strong>' + doneCount + '</strong> / ' + items.length;
+/* ─── 初始化 ─── */
+API.init().then(function () {
+  container = document.getElementById('starContainer');
+  canvas = document.getElementById('starfield');
+  SF.init(canvas, []);
+  refresh();
+  setupEvents();
   document.getElementById('todayDate').textContent = U.displayDate();
+});
+
+/* ─── 渲染刷新 ─── */
+function refresh() {
+  return API.getToday().then(function (lights) {
+    SF.update(lights);
+    updateHint(lights);
+    updateStats(lights);
+  });
 }
 
-/* ─── 事件处理 ─── */
-document.getElementById('addBtn').addEventListener('click', function () {
+function updateHint(lights) {
+  var hint = document.getElementById('hint');
+  if (!lights.length) {
+    hint.style.opacity = '1';
+    hint.textContent = '添加第一颗微光吧';
+  } else if (lights.every(function (l) { return l.status === 'done'; })) {
+    hint.style.opacity = '0.6';
+    hint.textContent = '今天的星空已经点亮';
+  } else {
+    hint.style.opacity = '0';
+  }
+}
+
+function updateStats(lights) {
+  var done = lights.filter(function (l) { return l.status === 'done'; }).length;
+  var el = document.getElementById('statsFloat');
+  el.innerHTML = '已点亮 <strong>' + done + '</strong> / ' + lights.length;
+}
+
+/* ─── 事件 ─── */
+function setupEvents() {
+  // Canvas 点击 → 命中检测
+  canvas.addEventListener('click', function (e) {
+    var rect = canvas.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+    var hit = SF.hitTest(x, y);
+
+    if (hit) {
+      showCard(hit);
+    } else {
+      hideCard();
+    }
+  });
+
+  // 卡片按钮
+  document.getElementById('cardToggle').addEventListener('click', function () {
+    if (!currentCardId) return;
+    var light = getCurrentLight();
+    if (!light) return;
+    var op = light.status === 'done' ? API.uncomplete(currentCardId) : API.complete(currentCardId);
+    op.then(function (updated) {
+      if (updated.status === 'done') {
+        var pos = SF.getPos(currentCardId);
+        if (pos) SF.addBurst(pos.x, pos.y);
+      }
+      refresh().then(function () {
+        // 刷新后重新显示卡片
+        reopenCard(currentCardId);
+      });
+    });
+  });
+
+  document.getElementById('cardDelete').addEventListener('click', function () {
+    if (!currentCardId) return;
+    API.deleteLight(currentCardId).then(function () {
+      hideCard();
+      refresh();
+    });
+  });
+
+  // 点击容器空白区域关闭卡片
+  container.addEventListener('click', function (e) {
+    if (e.target === container || e.target === canvas) {
+      // 已由 canvas 点击处理
+    }
+  });
+
+  // 添加事项
+  document.getElementById('addBtn').addEventListener('click', addLight);
+  document.getElementById('input').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') addLight();
+  });
+
+  // 窗口大小变化 → 重新布局
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      SF.resize();
+      if (currentCardId) reopenCard(currentCardId);
+    }, 200);
+  });
+}
+
+function addLight() {
   var input = document.getElementById('input');
   var text = input.value.trim();
   if (!text) return;
-
   API.add(text).then(function () {
     input.value = '';
     refresh();
   });
-});
-
-document.getElementById('input').addEventListener('keydown', function (e) {
-  if (e.key === 'Enter') document.getElementById('addBtn').click();
-});
-
-document.getElementById('items').addEventListener('click', function (e) {
-  var action = e.target.dataset.action;
-  var row = e.target.closest('.item');
-  if (!row) return;
-  var id = row.dataset.id;
-
-  if (action === 'toggle') {
-    var isDone = row.classList.contains('done');
-    var op = isDone ? API.uncomplete(id) : API.complete(id);
-    op.then(refresh);
-  } else if (action === 'delete') {
-    API.deleteLight(id).then(refresh);
-  }
-});
-
-document.getElementById('clearBtn').addEventListener('click', function () {
-  API.getToday().then(function (items) {
-    var doneIds = items.filter(function (i) { return i.status === 'done'; }).map(function (i) { return i.id; });
-    if (!doneIds.length) return;
-    Promise.all(doneIds.map(function (id) { return API.deleteLight(id); })).then(refresh);
-  });
-});
-
-function refresh() {
-  API.getToday().then(render);
 }
 
-/* ─── 启动 ─── */
-API.init().then(function () {
-  refresh();
-});
+/* ─── 信息卡片 ─── */
+function showCard(hit) {
+  currentCardId = hit.id;
+  var light = hit.light;
+  var card = document.getElementById('infoCard');
+
+  document.getElementById('cardText').textContent = light.text;
+  document.getElementById('cardMeta').innerHTML =
+    '<span>创建 ' + U.timeStr(light.createdAt) + '</span>' +
+    (light.completedAt ? '<span>完成 ' + U.timeStr(light.completedAt) + '</span>' : '');
+
+  var toggleBtn = document.getElementById('cardToggle');
+  if (light.status === 'done') {
+    toggleBtn.textContent = '取消点亮';
+  } else {
+    toggleBtn.textContent = '点亮';
+  }
+
+  // 定位卡片
+  positionCard(hit.x, hit.y);
+
+  card.classList.add('show');
+}
+
+function reopenCard(lightId) {
+  // 刷新后通过 ID 找到新的 hit 信息并重新显示
+  API.getToday().then(function (lights) {
+    var light = lights.find(function (l) { return l.id === lightId; });
+    if (!light) return;
+    var pos = SF.getPos(lightId);
+    if (!pos) return;
+    showCard({ id: lightId, x: pos.x, y: pos.y, light: light });
+  });
+}
+
+function hideCard() {
+  currentCardId = null;
+  document.getElementById('infoCard').classList.remove('show');
+}
+
+function getCurrentLight() {
+  // 通过当前 canvas 数据查找
+  var card = document.getElementById('infoCard');
+  if (!card.classList.contains('show')) return null;
+  // 简单返回 null，由调用者自行获取
+  return null;
+}
+
+getCurrentLight = function () {
+  // 替代：从卡片状态推断
+  var toggleBtn = document.getElementById('cardToggle');
+  if (!currentCardId) return null;
+  var isDone = toggleBtn.textContent === '取消点亮';
+  return { status: isDone ? 'done' : 'pending' };
+};
+
+function positionCard(starX, starY) {
+  var card = document.getElementById('infoCard');
+  var inner = card.querySelector('.info-card-inner');
+  var rect = container.getBoundingClientRect();
+
+  // 先让卡片不可见以测量尺寸
+  card.style.visibility = 'hidden';
+  card.classList.add('show');
+  var cw = inner.offsetWidth;
+  var ch = inner.offsetHeight;
+  card.classList.remove('show');
+  card.style.visibility = '';
+
+  var gap = 16;
+  var left = starX - cw / 2;
+  var top = starY - ch - gap;
+
+  // 边缘检测
+  if (top < 8) top = starY + gap;
+  if (left < 8) left = 8;
+  if (left + cw > rect.width - 8) left = rect.width - cw - 8;
+
+  card.style.left = left + 'px';
+  card.style.top = top + 'px';
+}
 </script>
 </body>
 </html>
