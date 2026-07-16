@@ -5,12 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>微光集</title>
 <style>
+  :root {
+    --bg-dark: #0f0e17;
+    --bg-light: #fafaf8;
+    --gold: #d4a853;
+    --gold-dim: rgba(212,168,83,0.4);
+    --text-dark: #e6dfcc;
+    --text-light: #2a2a2a;
+    --moss: #5a7a6a;
+    --card-bg: rgba(20,18,28,0.95);
+    --card-bg-light: rgba(255,255,255,0.97);
+    --border-gold: rgba(212,168,83,0.25);
+    --border-light: rgba(0,0,0,0.08);
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden; }
   body {
-    background: #0f0e17;
-    color: #e6dfcc;
+    background: var(--bg-dark);
+    color: var(--text-dark);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
+    transition: background 0.5s;
+  }
+  body.mode-vein {
+    background: var(--bg-light);
+    color: var(--text-light);
   }
   .app {
     display: flex;
@@ -19,34 +37,134 @@
     max-width: 480px;
     margin: 0 auto;
     position: relative;
+    overflow: hidden;
   }
-  .header {
+
+  .topbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 20px 6px;
+    padding: 14px 16px 6px;
     flex-shrink: 0;
+    z-index: 20;
   }
-  .header h1 {
-    font-size: 20px;
+  .topbar-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.06);
+    color: var(--gold);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  body.mode-vein .topbar-btn {
+    background: rgba(0,0,0,0.04);
+    color: var(--moss);
+  }
+  .topbar-btn:active { transform: scale(0.92); }
+
+  .day-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .day-nav-arrow {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #6a6a6a;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+  }
+  body.mode-vein .day-nav-arrow { color: #9a9a9a; }
+  .day-nav-arrow:active { color: var(--gold); }
+  body.mode-vein .day-nav-arrow:active { color: var(--moss); }
+  .day-nav-label {
+    font-size: 14px;
     font-weight: 500;
-    letter-spacing: 0.02em;
-    color: #d4a853;
+    color: #c0b8a0;
+    min-width: 72px;
+    text-align: center;
+    cursor: pointer;
+    transition: color 0.2s;
   }
-  .header .date {
-    font-size: 13px;
-    color: #8a8a8a;
+  body.mode-vein .day-nav-label { color: #5a5a5a; }
+  .day-nav-label.today { color: var(--gold); }
+  body.mode-vein .day-nav-label.today { color: var(--moss); font-weight: 600; }
+
+  .mode-toggle {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.06);
+    font-size: 17px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
   }
-  .star-container {
+  body.mode-vein .mode-toggle { background: rgba(0,0,0,0.04); }
+  .mode-toggle:active { transform: scale(0.92); }
+
+  .view-toggle-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 4px 0 8px;
+    flex-shrink: 0;
+    z-index: 15;
+  }
+  .view-toggle {
+    display: flex;
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 2px;
+    gap: 1px;
+  }
+  body.mode-vein .view-toggle { background: rgba(0,0,0,0.04); }
+  .view-opt {
+    padding: 5px 16px;
+    border-radius: 18px;
+    font-size: 12px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: #6a6a6a;
+    transition: all 0.25s;
+    white-space: nowrap;
+  }
+  body.mode-vein .view-opt { color: #8a8a8a; }
+  .view-opt.active {
+    background: rgba(212,168,83,0.15);
+    color: var(--gold);
+  }
+  body.mode-vein .view-opt.active {
+    background: rgba(90,122,106,0.12);
+    color: var(--moss);
+  }
+
+  .canvas-container {
     flex: 1;
     position: relative;
     min-height: 0;
   }
-  .star-container canvas {
+  .canvas-container canvas {
     display: block;
     position: absolute;
     top: 0; left: 0;
+    transition: opacity 0.5s;
   }
+  canvas.hidden { opacity: 0; pointer-events: none; }
+
   .info-card {
     position: absolute;
     z-index: 10;
@@ -61,8 +179,8 @@
     pointer-events: auto;
   }
   .info-card-inner {
-    background: rgba(20,18,28,0.95);
-    border: 1px solid rgba(212,168,83,0.25);
+    background: var(--card-bg);
+    border: 1px solid var(--border-gold);
     border-radius: 14px;
     padding: 14px 16px;
     min-width: 180px;
@@ -71,6 +189,11 @@
     -webkit-backdrop-filter: blur(12px);
     box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 1px rgba(212,168,83,0.15);
   }
+  body.mode-vein .info-card-inner {
+    background: var(--card-bg-light);
+    border: 1px solid var(--border-light);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 0 1px rgba(0,0,0,0.05);
+  }
   .card-text {
     font-size: 15px;
     color: #e6dfcc;
@@ -78,6 +201,7 @@
     margin-bottom: 8px;
     word-break: break-word;
   }
+  body.mode-vein .card-text { color: #2a2a2a; }
   .card-meta {
     font-size: 11px;
     color: #6a6a6a;
@@ -85,11 +209,8 @@
     display: flex;
     gap: 10px;
   }
-  .card-meta span { display: flex; align-items: center; gap: 3px; }
-  .card-actions {
-    display: flex;
-    gap: 8px;
-  }
+  body.mode-vein .card-meta { color: #8a8a8a; }
+  .card-actions { display: flex; gap: 8px; }
   .card-btn {
     flex: 1;
     padding: 7px 0;
@@ -102,8 +223,13 @@
   }
   .card-btn.primary {
     background: rgba(212,168,83,0.15);
-    color: #d4a853;
-    border: 1px solid rgba(212,168,83,0.2);
+    color: var(--gold);
+    border: 1px solid var(--border-gold);
+  }
+  body.mode-vein .card-btn.primary {
+    background: rgba(90,122,106,0.1);
+    color: var(--moss);
+    border: 1px solid rgba(90,122,106,0.2);
   }
   .card-btn.primary:active { background: rgba(212,168,83,0.25); }
   .card-btn.danger {
@@ -111,13 +237,52 @@
     color: #5a4a4a;
     border: 1px solid rgba(255,255,255,0.06);
   }
-  .card-btn.danger:active { color: #d44; border-color: rgba(255,80,60,0.2); }
+  body.mode-vein .card-btn.danger {
+    color: #aaa;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .card-btn.danger:active { color: #d44; }
+
+  .hint {
+    position: absolute;
+    top: 48%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #3a3a3a;
+    font-size: 14px;
+    text-align: center;
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity 0.5s;
+  }
+  body.mode-vein .hint { color: #bbb; }
+
+  .stats-float {
+    position: absolute;
+    bottom: 12px;
+    left: 16px;
+    font-size: 11px;
+    color: #4a4a4a;
+    z-index: 5;
+    pointer-events: none;
+  }
+  body.mode-vein .stats-float { color: #b0b0b0; }
+  .stats-float strong { color: var(--gold); font-weight: 500; }
+  body.mode-vein .stats-float strong { color: var(--moss); }
+
   .input-bar {
     display: flex;
     gap: 10px;
-    padding: 12px 20px 20px;
+    padding: 12px 16px;
     flex-shrink: 0;
     padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 15;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .input-bar.hidden {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
   }
   .input-bar input {
     flex: 1;
@@ -125,17 +290,23 @@
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 12px;
     padding: 12px 16px;
-    color: #e6dfcc;
+    color: var(--text-dark);
     font-size: 15px;
     outline: none;
     transition: border-color 0.3s;
   }
+  body.mode-vein .input-bar input {
+    background: rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.08);
+    color: var(--text-light);
+  }
   .input-bar input:focus { border-color: rgba(212,168,83,0.4); }
+  body.mode-vein .input-bar input:focus { border-color: rgba(90,122,106,0.4); }
   .input-bar input::placeholder { color: #4a4a4a; }
   .input-bar button {
     background: rgba(212,168,83,0.12);
     border: 1px solid rgba(212,168,83,0.2);
-    color: #d4a853;
+    color: var(--gold);
     padding: 12px 18px;
     border-radius: 12px;
     font-size: 15px;
@@ -144,41 +315,148 @@
     transition: all 0.2s;
     flex-shrink: 0;
   }
-  .input-bar button:active { background: rgba(212,168,83,0.22); }
-  .hint {
-    position: absolute;
-    bottom: 50%;
-    left: 50%;
-    transform: translate(-50%, 50%);
-    color: #3a3a3a;
-    font-size: 14px;
-    text-align: center;
-    z-index: 5;
-    pointer-events: none;
-    transition: opacity 0.5s;
+  body.mode-vein .input-bar button {
+    background: rgba(90,122,106,0.1);
+    border: 1px solid rgba(90,122,106,0.2);
+    color: var(--moss);
   }
-  .stats-float {
+  .input-bar button:active { background: rgba(212,168,83,0.22); }
+
+  .settings-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .settings-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .settings-panel {
+    background: #1a1a24;
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+    width: 100%;
+    max-width: 480px;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .settings-overlay.show .settings-panel { transform: translateY(0); }
+  .settings-title {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--gold);
+    margin-bottom: 18px;
+  }
+  .settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .settings-label { font-size: 14px; color: #c0b8a0; }
+  .settings-value {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .settings-value span {
+    font-size: 14px;
+    color: var(--gold);
+    min-width: 32px;
+    text-align: center;
+  }
+  .settings-adj {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: transparent;
+    color: #8a8a8a;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .settings-adj:active { background: rgba(255,255,255,0.05); }
+  .settings-done {
+    display: block;
+    width: 100%;
+    margin-top: 18px;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: rgba(212,168,83,0.15);
+    color: var(--gold);
+    font-size: 15px;
+    cursor: pointer;
+  }
+
+  .readonly-hint {
     position: absolute;
-    bottom: 12px;
-    left: 20px;
-    font-size: 12px;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
     color: #4a4a4a;
     z-index: 5;
     pointer-events: none;
   }
-  .stats-float strong { color: #d4a853; font-weight: 500; }
+  body.mode-vein .readonly-hint { color: #bbb; }
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">
-    <h1>微光集</h1>
-    <span class="date" id="todayDate"></span>
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel">
+      <div class="settings-title">设置</div>
+      <div class="settings-row">
+        <span class="settings-label">事项过期天数</span>
+        <div class="settings-value">
+          <button class="settings-adj" id="expiryMinus">−</button>
+          <span id="expiryVal">11</span>
+          <button class="settings-adj" id="expiryPlus">+</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">过期事项归于</span>
+        <span class="settings-label" style="color:#8a8a8a; font-size:13px;">遗忘之海 / 档案室</span>
+      </div>
+      <button class="settings-done" id="settingsDone">完成</button>
+    </div>
   </div>
-  <div class="star-container" id="starContainer">
-    <canvas id="starfield"></canvas>
+
+  <div class="topbar">
+    <button class="topbar-btn" id="settingsBtn" title="设置">⚙</button>
+    <div class="day-nav">
+      <button class="day-nav-arrow" id="dayPrev">◂</button>
+      <span class="day-nav-label today" id="dayLabel">今天</span>
+      <button class="day-nav-arrow" id="dayNext">▸</button>
+    </div>
+    <button class="mode-toggle" id="modeToggle" title="切换模式">🌙</button>
+  </div>
+
+  <div class="view-toggle-wrap">
+    <div class="view-toggle">
+      <button class="view-opt active" data-view="active">活跃</button>
+      <button class="view-opt" data-view="sunken">已沉没</button>
+    </div>
+  </div>
+
+  <div class="canvas-container" id="canvasContainer">
+    <canvas id="starCanvas"></canvas>
+    <canvas id="veinCanvas" class="hidden"></canvas>
     <div class="hint" id="hint">添加第一颗微光吧</div>
     <div class="stats-float" id="statsFloat"></div>
+    <div class="readonly-hint" id="readonlyHint" style="display:none">〇 历史记录 · 只读</div>
+
     <div class="info-card" id="infoCard">
       <div class="info-card-inner">
         <div class="card-text" id="cardText"></div>
@@ -190,7 +468,8 @@
       </div>
     </div>
   </div>
-  <div class="input-bar">
+
+  <div class="input-bar" id="inputBar">
     <input type="text" id="input" placeholder="添加一件事…" maxlength="80" autocomplete="off" enterkeyhint="done">
     <button id="addBtn">+ 微光</button>
   </div>
@@ -200,29 +479,54 @@
 <script src="../js/db.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/starfield.js"></script>
+<script src="../js/veinfield.js"></script>
 
 <script>
 var API = LightletAPI;
 var U = LightletUtils;
 var SF = StarField;
+var VF = VeinField;
 
-var canvas, container;
+var currentMode = 'star';
+var currentView = 'active';
+var currentDate = U.todayStr();
+var isToday = true;
 var currentCardId = null;
 
+var starCanvas, veinCanvas, container;
+
 API.init().then(function () {
-  container = document.getElementById('starContainer');
-  canvas = document.getElementById('starfield');
-  SF.init(canvas, []);
+  container = document.getElementById('canvasContainer');
+  starCanvas = document.getElementById('starCanvas');
+  veinCanvas = document.getElementById('veinCanvas');
+
+  SF.init(starCanvas, []);
+  VF.init(veinCanvas, []);
+
   refresh();
   setupEvents();
-  document.getElementById('todayDate').textContent = U.displayDate();
+  updateDayLabel();
 });
 
 function refresh() {
-  return API.getToday().then(function (lights) {
-    SF.update(lights);
+  hideCard();
+
+  var promise;
+  if (currentView === 'sunken') {
+    promise = API.getExpired();
+  } else if (isToday) {
+    promise = API.getToday();
+  } else {
+    promise = API.getDay(currentDate);
+  }
+
+  return promise.then(function (lights) {
+    lights = lights || [];
+    SF.update(currentMode === 'star' ? lights : []);
+    VF.update(currentMode === 'vein' ? lights : []);
     updateHint(lights);
     updateStats(lights);
+    updateUIForDay();
   });
 }
 
@@ -230,10 +534,12 @@ function updateHint(lights) {
   var hint = document.getElementById('hint');
   if (!lights.length) {
     hint.style.opacity = '1';
-    hint.textContent = '添加第一颗微光吧';
-  } else if (lights.every(function (l) { return l.status === 'done'; })) {
-    hint.style.opacity = '0.6';
-    hint.textContent = '今天的星空已经点亮';
+    hint.textContent = currentView === 'sunken'
+      ? '这里空空如也'
+      : isToday ? '添加第一颗微光吧' : '这一天没有记录';
+  } else if (currentView === 'active' && lights.every(function (l) { return l.status === 'done'; })) {
+    hint.style.opacity = '0.5';
+    hint.textContent = isToday ? '今天的星空已经点亮' : '这一天的星空已满';
   } else {
     hint.style.opacity = '0';
   }
@@ -242,44 +548,138 @@ function updateHint(lights) {
 function updateStats(lights) {
   var done = lights.filter(function (l) { return l.status === 'done'; }).length;
   var el = document.getElementById('statsFloat');
-  el.innerHTML = '已点亮 <strong>' + done + '</strong> / ' + lights.length;
+  if (!lights.length) { el.textContent = ''; return; }
+  el.innerHTML = currentView === 'sunken'
+    ? '已沉没 <strong>' + lights.length + '</strong> 项'
+    : '已点亮 <strong>' + done + '</strong> / ' + lights.length;
+}
+
+function updateUIForDay() {
+  var inputBar = document.getElementById('inputBar');
+  var readonlyHint = document.getElementById('readonlyHint');
+  if (isToday && currentView === 'active') {
+    inputBar.classList.remove('hidden');
+    readonlyHint.style.display = 'none';
+  } else {
+    inputBar.classList.add('hidden');
+    if (currentView === 'active' && !isToday) {
+      readonlyHint.style.display = 'block';
+    } else {
+      readonlyHint.style.display = 'none';
+    }
+  }
+  updateViewToggleLabels();
+}
+
+function setMode(mode) {
+  if (currentMode === mode) return;
+  currentMode = mode;
+  var body = document.body;
+  var toggle = document.getElementById('modeToggle');
+  if (mode === 'vein') {
+    body.classList.add('mode-vein');
+    toggle.textContent = '☀️';
+    starCanvas.classList.add('hidden');
+    veinCanvas.classList.remove('hidden');
+  } else {
+    body.classList.remove('mode-vein');
+    toggle.textContent = '🌙';
+    starCanvas.classList.remove('hidden');
+    veinCanvas.classList.add('hidden');
+  }
+  refresh();
+  updateViewToggleLabels();
+}
+
+function updateViewToggleLabels() {
+  var btns = document.querySelectorAll('.view-opt');
+  btns.forEach(function (btn) {
+    if (btn.dataset.view === 'active') {
+      btn.textContent = currentMode === 'star' ? '今日星空' : '今日脉络';
+    } else {
+      btn.textContent = currentMode === 'star' ? '遗忘之海' : '档案室';
+    }
+  });
+}
+
+function goToDate(dateStr) {
+  if (currentView === 'sunken') setView('active');
+  currentDate = dateStr;
+  isToday = (dateStr === U.todayStr());
+  updateDayLabel();
+  refresh();
+}
+
+function updateDayLabel() {
+  var label = document.getElementById('dayLabel');
+  label.className = 'day-nav-label' + (isToday ? ' today' : '');
+  label.textContent = isToday ? '今天' : U.displayDate(currentDate);
+}
+
+function setView(view) {
+  if (currentView === view) return;
+  currentView = view;
+  document.querySelectorAll('.view-opt').forEach(function (btn) {
+    btn.classList.toggle('active', btn.dataset.view === view);
+  });
+  if (view === 'sunken') {
+    currentDate = U.todayStr();
+    isToday = true;
+    updateDayLabel();
+  }
+  refresh();
 }
 
 function setupEvents() {
-  canvas.addEventListener('click', function (e) {
-    var rect = canvas.getBoundingClientRect();
-    var x = e.clientX - rect.left;
-    var y = e.clientY - rect.top;
-    var hit = SF.hitTest(x, y);
-    if (hit) {
-      showCard(hit);
-    } else {
-      hideCard();
-    }
+  document.getElementById('modeToggle').addEventListener('click', function () {
+    setMode(currentMode === 'star' ? 'vein' : 'star');
+  });
+  document.getElementById('dayPrev').addEventListener('click', function () {
+    goToDate(U.addDays(currentDate, -1));
+  });
+  document.getElementById('dayNext').addEventListener('click', function () {
+    if (isToday) return;
+    goToDate(U.addDays(currentDate, 1));
+  });
+  document.getElementById('dayLabel').addEventListener('click', function () {
+    if (!isToday) goToDate(U.todayStr());
+  });
+  document.querySelectorAll('.view-opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      setView(btn.dataset.view);
+    });
   });
 
+  starCanvas.addEventListener('click', canvasClick);
+  veinCanvas.addEventListener('click', canvasClick);
+
+  function canvasClick(e) {
+    var c = currentMode === 'star' ? starCanvas : veinCanvas;
+    var engine = currentMode === 'star' ? SF : VF;
+    var rect = c.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+    var hit = engine.hitTest(x, y);
+    if (hit) { showCard(hit, engine); } else { hideCard(); }
+  }
+
   document.getElementById('cardToggle').addEventListener('click', function () {
-    if (!currentCardId) return;
-    var toggleBtn = document.getElementById('cardToggle');
-    var isDone = toggleBtn.textContent === '取消点亮';
-    var op = isDone ? API.uncomplete(currentCardId) : API.complete(currentCardId);
+    if (!currentCardId || !isToday || currentView === 'sunken') return;
+    var cardLight = getCardLight();
+    if (!cardLight) return;
+    var op = cardLight.status === 'done' ? API.uncomplete(currentCardId) : API.complete(currentCardId);
     op.then(function (updated) {
       if (updated.status === 'done') {
-        var pos = SF.getPos(currentCardId);
+        var pos = currentMode === 'star' ? SF.getPos(currentCardId) : null;
         if (pos) SF.addBurst(pos.x, pos.y);
       }
-      refresh().then(function () {
-        reopenCard(currentCardId);
-      });
+      refresh().then(function () { reopenCard(currentCardId); });
     });
   });
 
   document.getElementById('cardDelete').addEventListener('click', function () {
     if (!currentCardId) return;
-    API.deleteLight(currentCardId).then(function () {
-      hideCard();
-      refresh();
-    });
+    API.deleteLight(currentCardId).then(function () { hideCard(); refresh(); });
   });
 
   document.getElementById('addBtn').addEventListener('click', addLight);
@@ -291,50 +691,84 @@ function setupEvents() {
   window.addEventListener('resize', function () {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function () {
-      SF.resize();
+      SF.resize(); VF.resize();
       if (currentCardId) reopenCard(currentCardId);
     }, 200);
   });
+
+  document.getElementById('settingsBtn').addEventListener('click', function () {
+    document.getElementById('expiryVal').textContent = API.getExpiryDays();
+    document.getElementById('settingsOverlay').classList.add('show');
+  });
+  document.getElementById('settingsOverlay').addEventListener('click', function (e) {
+    if (e.target === this) closeSettings();
+  });
+  document.getElementById('settingsDone').addEventListener('click', closeSettings);
+  document.getElementById('expiryMinus').addEventListener('click', function () {
+    var v = parseInt(document.getElementById('expiryVal').textContent, 10);
+    if (v > 1) document.getElementById('expiryVal').textContent = v - 1;
+  });
+  document.getElementById('expiryPlus').addEventListener('click', function () {
+    var v = parseInt(document.getElementById('expiryVal').textContent, 10);
+    if (v < 60) document.getElementById('expiryVal').textContent = v + 1;
+  });
+
+  function closeSettings() {
+    var days = parseInt(document.getElementById('expiryVal').textContent, 10);
+    API.setExpiryDays(days);
+    document.getElementById('settingsOverlay').classList.remove('show');
+    refresh();
+  }
 }
 
 function addLight() {
+  if (!isToday || currentView === 'sunken') return;
   var input = document.getElementById('input');
   var text = input.value.trim();
   if (!text) return;
-  API.add(text).then(function () {
-    input.value = '';
-    refresh();
-  });
+  API.add(text).then(function () { input.value = ''; refresh(); });
 }
 
-function showCard(hit) {
+var _cardLight = null;
+function getCardLight() { return _cardLight; }
+
+function showCard(hit, engine) {
   currentCardId = hit.id;
-  var light = hit.light;
+  _cardLight = hit.light;
   var card = document.getElementById('infoCard');
-  document.getElementById('cardText').textContent = light.text;
+  document.getElementById('cardText').textContent = hit.light.text;
   document.getElementById('cardMeta').innerHTML =
-    '<span>创建 ' + U.timeStr(light.createdAt) + '</span>' +
-    (light.completedAt ? '<span>完成 ' + U.timeStr(light.completedAt) + '</span>' : '');
+    '<span>创建 ' + U.timeStr(hit.light.createdAt) + '</span>' +
+    (hit.light.completedAt ? '<span>完成 ' + U.timeStr(hit.light.completedAt) + '</span>' : '');
   var toggleBtn = document.getElementById('cardToggle');
-  toggleBtn.textContent = light.status === 'done' ? '取消点亮' : '点亮';
+  var delBtn = document.getElementById('cardDelete');
+  if (hit.light.status === 'done') { toggleBtn.textContent = '取消点亮'; toggleBtn.style.opacity = '1'; }
+  else if (hit.light.status === 'expired') { toggleBtn.textContent = '已沉没'; toggleBtn.style.opacity = '0.4'; }
+  else { toggleBtn.textContent = '点亮'; toggleBtn.style.opacity = '1'; }
+  var readonly = !isToday || currentView === 'sunken' || hit.light.status === 'expired';
+  toggleBtn.style.display = readonly ? 'none' : '';
+  delBtn.style.display = readonly ? 'none' : '';
   positionCard(hit.x, hit.y);
   card.classList.add('show');
 }
 
 function reopenCard(lightId) {
-  API.getToday().then(function (lights) {
+  var engine = currentMode === 'star' ? SF : VF;
+  var pos = engine.getPos(lightId);
+  if (!pos) return;
+  var loadPromise;
+  if (currentView === 'sunken') { loadPromise = API.getExpired(); }
+  else if (isToday) { loadPromise = API.getToday(); }
+  else { loadPromise = API.getDay(currentDate); }
+  loadPromise.then(function (lights) {
+    lights = lights || [];
     var light = lights.find(function (l) { return l.id === lightId; });
     if (!light) return;
-    var pos = SF.getPos(lightId);
-    if (!pos) return;
-    showCard({ id: lightId, x: pos.x, y: pos.y, light: light });
+    showCard({ id: lightId, x: pos.x, y: pos.y, light: light }, engine);
   });
 }
 
-function hideCard() {
-  currentCardId = null;
-  document.getElementById('infoCard').classList.remove('show');
-}
+function hideCard() { currentCardId = null; _cardLight = null; document.getElementById('infoCard').classList.remove('show'); }
 
 function positionCard(starX, starY) {
   var card = document.getElementById('infoCard');
@@ -342,13 +776,10 @@ function positionCard(starX, starY) {
   var rect = container.getBoundingClientRect();
   card.style.visibility = 'hidden';
   card.classList.add('show');
-  var cw = inner.offsetWidth;
-  var ch = inner.offsetHeight;
+  var cw = inner.offsetWidth, ch = inner.offsetHeight;
   card.classList.remove('show');
   card.style.visibility = '';
-  var gap = 16;
-  var left = starX - cw / 2;
-  var top = starY - ch - gap;
+  var gap = 16, left = starX - cw / 2, top = starY - ch - gap;
   if (top < 8) top = starY + gap;
   if (left < 8) left = 8;
   if (left + cw > rect.width - 8) left = rect.width - cw - 8;
