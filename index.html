@@ -17,9 +17,8 @@
     body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;overscroll-behavior:none;font-family:"ZCOOL KuaiLe","Hannotate SC","Yuanti SC",cursive;background:#14283a;color:#f2f0e7}
     button,input{font:inherit;touch-action:manipulation}
     button{color:inherit;-webkit-appearance:none;appearance:none;outline:none;box-shadow:none}button:focus{outline:none}button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
-    .app{position:relative;--scene-lift:clamp(28px,7dvh,58px);width:100vw;width:100dvw;height:var(--app-height,100dvh);min-height:-webkit-fill-available;margin:0;overflow:hidden;background:#082e4b;transition:color .28s}
+    .app{position:relative;width:100vw;width:100dvw;height:var(--app-height,100dvh);min-height:-webkit-fill-available;margin:0;overflow:hidden;background:#082e4b url('public/lightlet-night-bg.png') center bottom/cover no-repeat;transition:color .28s}
     .app.day{--ink:#263238;--muted:#778081;background:#ecedeb;color:var(--ink)}
-    .scene-sky,.scene-land{position:absolute;inset:0;pointer-events:none;transition:opacity .3s}.scene-sky{z-index:0;background:linear-gradient(180deg,#062b48 0%,#0a3657 58%,#17445d 100%)}.scene-sky:after{content:"";position:absolute;inset:0;background:url('public/lightlet-night-bg.png') center top/100% auto no-repeat;clip-path:inset(0 0 42% 0);opacity:.72}.scene-land{z-index:1;background:url('public/lightlet-night-bg.png') center bottom/cover no-repeat;transform:translateY(calc(-1 * var(--scene-lift)));clip-path:inset(42% 0 0 0);filter:drop-shadow(0 -8px 20px rgba(4,22,34,.12))}.day .scene-sky,.day .scene-land{opacity:0}
     .shell{position:relative;z-index:2;width:100%;height:100%;min-height:0;padding:calc(14px + env(safe-area-inset-top)) max(22px,env(safe-area-inset-left)) calc(106px + env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-right));display:flex;flex-direction:column}
     header{display:flex;align-items:center;justify-content:space-between}
     .brand{display:flex;align-items:center}.brand b{font-size:21px;letter-spacing:.04em;font-weight:400}.brand small,.brand-mark{display:none}
@@ -55,7 +54,6 @@
 </head>
 <body>
   <main class="app" id="app">
-    <div class="scene-sky" aria-hidden="true"></div><div class="scene-land" aria-hidden="true"></div>
     <div class="campfire-live" aria-hidden="true"><i class="flame"></i></div>
     <section class="shell">
       <header>
@@ -88,8 +86,8 @@
     function hashValue(value){let h=2166136261;for(const c of String(value)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0)/4294967295}
     function dates(){return[...new Set(items.map(x=>x.date))].sort()}
     function clusterCenter(date){const all=dates(),i=Math.max(0,all.indexOf(date)),angle=i*2.39996,r=i===0?0:17+Math.sqrt(i)*10;return{x:Math.max(13,Math.min(87,50+Math.cos(angle)*r)),y:Math.max(14,Math.min(84,48+Math.sin(angle)*r*.72))}}
-    function skylineAt(x){const edge=Math.abs(x-50)/50;return 52+10*(1-edge)+3*Math.sin((x+8)*.105)}
-    function layoutFor(item,localIndex){const center=clusterCenter(item.date),seed=hashValue(item.id+'-'+item.date),angle=seed*Math.PI*2+localIndex*2.13,r=localIndex===0?0:3.8+Math.sqrt(localIndex)*4.4+seed*2.8,x=Math.max(5,Math.min(95,center.x+Math.cos(angle)*r)),cloudY=center.y+Math.sin(angle)*r*.78,skyTop=8,skyBottom=skylineAt(x)-6,y=skyTop+hashValue(item.id+'sky')*(skyBottom-skyTop);return[x,cloudY,10+Math.round(hashValue(item.id+'size')*14),y]}
+    function skylineCanvasAt(xPct){const iw=941,ih=1672,w=app.clientWidth,h=app.clientHeight,scale=Math.max(w/iw,h/ih),cropX=(iw*scale-w)/2,cropY=ih*scale-h,imageX=(xPct/100*w+cropX)/scale/iw,profile=[[0,.63],[.08,.57],[.16,.61],[.27,.68],[.5,.745],[.68,.68],[.82,.595],[.9,.57],[1,.64]];let a=profile[0],b=profile.at(-1);for(let i=1;i<profile.length;i++)if(imageX<=profile[i][0]){a=profile[i-1];b=profile[i];break}const t=Math.max(0,Math.min(1,(imageX-a[0])/(b[0]-a[0]||1))),imageY=(a[1]+(b[1]-a[1])*t)*ih,screenY=imageY*scale-cropY,local=(screenY-canvas.offsetTop)/Math.max(1,canvas.clientHeight)*100;return Math.max(30,Math.min(72,local))}
+    function layoutFor(item,localIndex){const center=clusterCenter(item.date),seed=hashValue(item.id+'-'+item.date),angle=seed*Math.PI*2+localIndex*2.13,r=localIndex===0?0:3.8+Math.sqrt(localIndex)*4.4+seed*2.8,x=Math.max(5,Math.min(95,center.x+Math.cos(angle)*r)),cloudY=center.y+Math.sin(angle)*r*.78,skyTop=7,skyBottom=skylineCanvasAt(x)-8,y=skyTop+hashValue(item.id+'sky')*Math.max(8,skyBottom-skyTop);return[x,cloudY,10+Math.round(hashValue(item.id+'size')*14),y]}
     function persist(){localStorage.setItem('lightlet-items',JSON.stringify(items))}
     function current(){return filterDate?items.filter(x=>x.date===filterDate):items}
     function prettyDate(value){return new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'short'}).format(new Date(value+'T12:00:00'))}
@@ -153,7 +151,7 @@
     $('#soundMode').onclick=async()=>{await wakeAudio();soundMode=soundMode==='lofi'?'night':'lofi';soundMuted=false;masterGain.gain.setTargetAtTime(.8,audioCtx.currentTime,.12);startSoundscape()};
     $('#muteSound').onclick=async()=>{await wakeAudio();soundMuted=!soundMuted;masterGain.gain.setTargetAtTime(soundMuted?0:.8,audioCtx.currentTime,.12);updateSoundUI()};
     function syncViewport(){const h=window.visualViewport?.height||window.innerHeight;document.documentElement.style.setProperty('--app-height',`${Math.round(h)}px`);requestAnimationFrame(syncFire)}
-    function syncFire(){const w=app.clientWidth,h=app.clientHeight,iw=941,ih=1672,scale=Math.max(w/iw,h/ih),cropX=(iw*scale-w)/2,cropY=ih*scale-h,lift=Math.max(28,Math.min(58,h*.07));app.style.setProperty('--scene-lift',`${lift}px`);app.style.setProperty('--fire-x',`${491*scale-cropX}px`);app.style.setProperty('--fire-y',`${1408*scale-cropY-lift}px`)}
+    function syncFire(){const w=app.clientWidth,h=app.clientHeight,iw=941,ih=1672,scale=Math.max(w/iw,h/ih),cropX=(iw*scale-w)/2,cropY=ih*scale-h;app.style.setProperty('--fire-x',`${491*scale-cropX}px`);app.style.setProperty('--fire-y',`${1408*scale-cropY}px`)}
     syncViewport();window.visualViewport?.addEventListener('resize',syncViewport);window.addEventListener('orientationchange',()=>setTimeout(syncViewport,100));
     makeParticles();resetView();render();
   </script>
